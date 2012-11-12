@@ -1,0 +1,33 @@
+MBOOT_PAGE_ALIGN EQU 1<<0
+MBOOT_MEM_INFO   EQU 1<<1
+MBOOT_MAGIC      EQU 0x1BADB002
+MBOOT_FLAGS      EQU MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
+MBOOT_CHECKSUM   EQU -(MBOOT_MAGIC + MBOOT_FLAGS)
+
+BITS 32
+
+GLOBAL mboot
+EXTERN code
+EXTERN bss
+EXTERN end
+
+mboot:
+    DD MBOOT_MAGIC
+    DD MBOOT_FLAGS
+    DD MBOOT_CHECKSUM
+    DD mboot
+    DD code
+    DD bss
+    DD end
+    DD start
+
+GLOBAL start
+EXTERN kmain
+
+start:
+    PUSH EBX
+    CLI
+    CALL kmain
+_hang:
+    HLT
+    JMP _hang
