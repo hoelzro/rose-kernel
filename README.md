@@ -2,6 +2,13 @@
 
 rOSe is a toy operating system that I'm writing for fun.
 
+# Design
+
+The design of rOSe is still up in the air; I have decided that I'd like
+to try writing a microkernel, though.  That being said, I started this
+project with very little idea on what I was doing, so I wouldn't be
+surprised if this project had a lot of rewrites. =)
+
 # What's with the name?
 
 I had some trouble thinking of a good name (RobOS would just be silly),
