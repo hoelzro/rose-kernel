@@ -3,7 +3,7 @@
 static unsigned char *vram = (unsigned char *) 0xB8000;
 
 #define COLS 80
-#define ROWS 20
+#define ROWS 25
 
 #define WIDTH 2 * COLS
 #define MAX_DIGITS 64
