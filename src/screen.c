@@ -1,11 +1,10 @@
 #include <rose/screen.h>
 
-static unsigned char *vram = (unsigned char *) 0xB8000;
+static unsigned short *vram = (unsigned short *) 0xB8000;
 
 #define COLS 80
 #define ROWS 25
 
-#define WIDTH 2 * COLS
 #define MAX_DIGITS 64
 
 static char char_map[] = "0123456789";
@@ -47,14 +46,13 @@ itoa(long value, int radix)
 void
 screen_write_string_at(const char *s, int x, int y)
 {
-    int vram_index = WIDTH * y + x;
+    int vram_index = COLS * y + x;
 
     while(*s) {
-        vram[vram_index]     = *s;
-        vram[vram_index + 1] = 0x07;
+        vram[vram_index] = 0x0700 | *s;
 
         s++;
-        vram_index += 2;
+        vram_index++;
     }
 }
 
