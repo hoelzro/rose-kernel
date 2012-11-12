@@ -44,15 +44,21 @@ itoa(long value, int radix)
 }
 
 void
-screen_write_string_at(const char *s, int x, int y)
+screen_write_char_at(char c, int x, int y)
 {
     int vram_index = COLS * y + x;
+    vram[vram_index] = 0x0700 | c;
+}
+
+void
+screen_write_string_at(const char *s, int x, int y)
+{
 
     while(*s) {
-        vram[vram_index] = 0x0700 | *s;
+        screen_write_char_at(*s, x, y);
 
         s++;
-        vram_index++;
+        x++;
     }
 }
 
