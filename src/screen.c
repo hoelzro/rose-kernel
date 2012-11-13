@@ -1,6 +1,6 @@
 #include <rose/screen.h>
 
-static unsigned short *vram = (unsigned short *) 0xB8000;
+static volatile unsigned short *vram = (unsigned short *) 0xB8000;
 
 #define COLS 80
 #define ROWS 25
