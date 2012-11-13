@@ -33,7 +33,9 @@ kmain(void)
 {
     screen_clear();
     gdt_init();
+    idt_init();
     protected_mode_start();
+    /* XXX turn on interrupts? */
 
     screen_write_string_at("Hello from rOSe (in protected mode!)", 0, 0);
 }
