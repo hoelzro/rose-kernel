@@ -22,6 +22,62 @@ struct gdt_pointer {
     struct gdt_entry *first;
 } __attribute__((packed));
 
+struct task_gate {
+    uint16_t reserved0;
+    uint16_t tss;
+    uint8_t  reserved1;
+    uint8_t  id_bits : 5; /* 0x05 */
+    uint8_t  dpl     : 2;
+    uint8_t  present : 1;
+    uint16_t reserved2;
+} __attribute__((packed));
+
+struct interrupt_gate {
+    uint16_t offset_lower;
+    uint16_t segment_selector; /* XXX segment selector type? */
+    uint8_t  reserved0;
+    uint8_t  id_bits   : 3; /* 0x06 */
+    uint8_t  gate_size : 1;
+    uint8_t  reserved1 : 1;
+    uint8_t  dpl       : 2;
+    uint8_t  present   : 1;
+    uint16_t offset_upper;
+} __attribute__((packed));
+
+struct trap_gate {
+    uint16_t offset_lower;
+    uint16_t segment_selector; /* XXX segment selector type? */
+    uint8_t  reserved0;
+    uint8_t  id_bits   : 3; /* 0x07 */
+    uint8_t  gate_size : 1;
+    uint8_t  reserved1 : 1;
+    uint8_t  dpl     : 2;
+    uint8_t  present : 1;
+    uint16_t offset_upper;
+} __attribute__((packed));
+
+struct idt_common {
+    uint32_t reserved0;
+    uint8_t  reserved1;
+    uint8_t  id_bits : 5;
+    uint8_t  dpl     : 2;
+    uint8_t  present : 1;
+    uint16_t reserved2;
+} __attribute__((packed));
+
+union idt_entry {
+    struct task_gate      task_gate;
+    struct interrupt_gate interrupt_gate;
+    struct trap_gate      trap_gate;
+
+    struct idt_common common;
+} __attribute__((packed));
+
+struct idt_pointer {
+    uint16_t limit;
+    union idt_entry *first;
+} __attribute__((packed));
+
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
