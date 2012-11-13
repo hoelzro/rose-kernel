@@ -4,11 +4,6 @@
 #include <rose/descriptor-tables.h>
 
 void
-asm_divide_by_zero_handler(void)
-{
-}
-
-void
 idt_set(void *p)
 {
     (void)p;
