@@ -5,15 +5,15 @@ struct gdt_entry {
     uint16_t limit_lower;
     uint16_t address_lower;
     uint8_t  address_middle;
-    uint8_t  type : 4;
-    uint8_t  descriptor_type : 1;
-    uint8_t  dpl : 2;
-    uint8_t  segment_present : 1;
-    uint8_t  limit_high : 4;
-    uint8_t  avl : 1;
-    uint8_t  is_64 : 1;
+    uint8_t  type                   : 4;
+    uint8_t  descriptor_type        : 1;
+    uint8_t  dpl                    : 2;
+    uint8_t  segment_present        : 1;
+    uint8_t  limit_high             : 4;
+    uint8_t  avl                    : 1;
+    uint8_t  is_64                  : 1;
     uint8_t  default_operation_size : 1;
-    uint8_t  granularity : 1;
+    uint8_t  granularity            : 1;
     uint8_t  address_high;
 } __attribute__((packed));
 
