@@ -7,5 +7,9 @@ all:
 boot: all
 	$(QEMU) -kernel src/kernel.bin
 
+test:
+	make -C tests
+
 clean:
 	make -C src clean
+	make -C tests clean
