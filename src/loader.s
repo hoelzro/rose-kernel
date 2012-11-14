@@ -26,7 +26,6 @@ EXTERN kmain
 
 start:
     PUSH EBX
-    CLI
     CALL kmain
 _hang:
     HLT

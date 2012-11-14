@@ -1,3 +1,4 @@
+#include <rose/io.h>
 #include <rose/screen.h>
 #include <rose/stdint.h>
 #include <rose/descriptor-tables.h>
@@ -29,8 +30,16 @@ general_isr(struct registers regs)
 }
 
 void
+disable_interrupts(void)
+{
+    asm volatile ("CLI"); /* disable maskable interrupts */
+    io_outb(0x70, io_inb(0x70) | 0x80); /* disable NMI */
+}
+
+void
 kmain(void)
 {
+    disable_interrupts();
     screen_clear();
     gdt_init();
     idt_init();
