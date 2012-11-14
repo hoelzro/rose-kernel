@@ -50,26 +50,30 @@ screen_write_char_at(char c, int x, int y)
     vram[vram_index] = 0x0700 | c;
 }
 
-void
+int
 screen_write_string_at(const char *s, int x, int y)
 {
+    int length = 0;
 
     while(*s) {
         screen_write_char_at(*s, x, y);
 
         s++;
         x++;
+        length++;
     }
+
+    return length;
 }
 
-void
+int
 screen_write_integer_at(long value, int radix, int x, int y)
 {
     const char *string_form;
 
     string_form = itoa(value, radix);
 
-    screen_write_string_at(string_form, x, y);
+    return screen_write_string_at(string_form, x, y);
 }
 
 void
