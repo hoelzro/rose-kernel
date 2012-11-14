@@ -1,5 +1,6 @@
 #include <rose/io.h>
 #include <rose/screen.h>
+#include <rose/serial.h>
 #include <rose/stdint.h>
 #include <rose/descriptor-tables.h>
 
@@ -44,6 +45,7 @@ kmain(void)
     gdt_init();
     idt_init();
     protected_mode_start();
+    serial_init();
     /* XXX turn on interrupts? */
 
     screen_write_string_at("Hello from rOSe (in protected mode!)", 0, 0);
