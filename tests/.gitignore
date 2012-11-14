@@ -1,2 +1,3 @@
 verify-gdt
 verify-idt
+verify-stdarg
