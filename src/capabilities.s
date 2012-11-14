@@ -1,0 +1,22 @@
+EXTENDED_FEATURE_FLAGS EQU 0x80000001
+LONGMODE_ENABLED       EQU 1<<29
+
+GLOBAL capabilities_is_64bit
+
+capabilities_is_64bit:
+    PUSH EBX
+    PUSH ECX
+    PUSH EDX
+
+    MOV EAX, EXTENDED_FEATURE_FLAGS
+    CPUID
+
+    MOV EAX, 0
+    AND EDX, LONGMODE_ENABLED
+    SETNZ AL
+
+    POP EDX
+    POP ECX
+    POP EBX
+
+    RET
