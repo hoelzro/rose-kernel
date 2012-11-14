@@ -1,3 +1,4 @@
+#include <rose/stdarg.h>
 #include <rose/screen.h>
 
 static volatile unsigned short *vram = (unsigned short *) 0xB8000;
@@ -90,4 +91,49 @@ screen_clear(void)
     for(i = 0; i < ROWS; i++) {
         screen_write_string_at(line, 0, i);
     }
+}
+
+void
+screen_printf(int x, int y, const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+
+    for(; *fmt && x < COLS; fmt++) {
+        if(*fmt == '%') {
+            fmt++;
+            char next = *fmt;
+
+            switch(next) {
+                case '\0':
+                    fmt--; /* make sure we pick it up in the condition */
+                    break;
+                case 'd': {
+                    int value = va_arg(args, int);
+                    x += screen_write_integer_at(value, 10, x, y);
+                    break;
+                }
+                case 'p':
+                    x += screen_write_string_at("0x", x, y);
+                case 'x': {
+                    int value = va_arg(args, int);
+                    x += screen_write_integer_at(value, 16, x, y);
+                    break;
+                }
+                case 's': {
+                    const char *value = va_arg(args, const char *);
+                    x += screen_write_string_at(value, x, y);
+                    break;
+                }
+                default:
+                    screen_write_char_at('%', x++, y);
+                    screen_write_char_at(next, x++, y);
+            }
+        } else {
+            screen_write_char_at(*fmt, x++, y);
+        }
+    }
+
+    va_end(args);
 }
