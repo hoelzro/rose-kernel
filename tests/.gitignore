@@ -1,3 +1,2 @@
-verify-gdt
-verify-idt
-verify-stdarg
+verify-*
+!*.c
