@@ -1,4 +1,4 @@
-#include <rose/descriptor-tables.h>
+#include <rose/memory.h>
 #include <rose/stdint.h>
 
 #define OP_SIZE_16BIT         0
@@ -43,12 +43,19 @@ struct gdt_pointer {
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
-/* defined in gdt-helper.s */
-extern void
-gdt_set(struct gdt_pointer *gdt);
+static void
+_gdt_set(struct gdt_pointer *gdt)
+{
+    asm("movl %0, %%eax;"
+        "lgdt (%%eax);"
+       :
+       : "m"(gdt)
+       : "eax"
+       );
+}
 
 static void
-gdt_entry_set_base(struct gdt_entry *entry, uint32_t base)
+_gdt_entry_set_base(struct gdt_entry *entry, uint32_t base)
 {
     entry->address_lower  = base & 0xFFFF;
     entry->address_middle = (base >> 16) & 0xFF;
@@ -56,7 +63,7 @@ gdt_entry_set_base(struct gdt_entry *entry, uint32_t base)
 }
 
 static void
-gdt_entry_set_limit(struct gdt_entry *entry, uint32_t limit)
+_gdt_entry_set_limit(struct gdt_entry *entry, uint32_t limit)
 {
     entry->limit_lower = limit & 0xFFFF;
     entry->limit_high  = (limit >> 16) & 0x0F;
@@ -73,12 +80,12 @@ gdt_entry_set_limit(struct gdt_entry *entry, uint32_t limit)
  */
 
 void
-gdt_init(void)
+memory_init_gdt(void)
 {
     int i;
 
-    gdt_entry_set_base(gdt, 0);
-    gdt_entry_set_limit(gdt, 0);
+    _gdt_entry_set_base(gdt, 0);
+    _gdt_entry_set_limit(gdt, 0);
 
     gdt[0].segment_present        = 0;
     gdt[0].is_64                  = 0;
@@ -90,8 +97,8 @@ gdt_init(void)
     gdt[0].dpl                    = 0;
 
     for(i = 1; i < 5; i++) {
-        gdt_entry_set_base(gdt + i, 0);
-        gdt_entry_set_limit(gdt + i, 0xFFFFFFFF);
+        _gdt_entry_set_base(gdt + i, 0);
+        _gdt_entry_set_limit(gdt + i, 0xFFFFFFFF);
 
         gdt[i].segment_present        = 1;
         gdt[i].is_64                  = 0;
@@ -110,5 +117,5 @@ gdt_init(void)
     gdt_ptr.limit = sizeof(gdt) - 1;
     gdt_ptr.first = gdt;
 
-    gdt_set(&gdt_ptr);
+    _gdt_set(&gdt_ptr);
 }
