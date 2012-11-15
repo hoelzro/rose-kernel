@@ -3,7 +3,7 @@ SEGMENT_KERNEL_CODE EQU 0x08
 
 GLOBAL asm_general_isr
 
-EXTERN general_isr
+EXTERN _general_isr
 
 asm_general_isr:
     PUSHA ; preserve general registers
@@ -18,7 +18,7 @@ asm_general_isr:
     MOV FS, AX
     MOV GS, AX
 
-    CALL general_isr
+    CALL _general_isr
 
     ; restore original segment
     POP EAX
