@@ -17,5 +17,8 @@ verify-idt: verify-idt.c ../src/descriptor-tables.o
 verify-stdarg: verify-stdarg.c ../src/stdarg.o
 	gcc $(CFLAGS) -o $@ $^
 
+verify-stdlib-string: verify-stdlib-string.c ../src/string.o
+	gcc $(CFLAGS) -o $@ $^
+
 clean:
 	rm -f *.o verify-gdt verify-idt
