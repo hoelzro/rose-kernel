@@ -2,6 +2,28 @@
 #include <rose/stdint.h>
 #include <rose/string.h>
 
+#define SEGMENT_KERNEL_CODE   0x08
+#define IDT_INTERRUPT_GATE    0x06
+#define GATE_SIZE_16BIT       0
+#define GATE_SIZE_32BIT       1
+#define OP_SIZE_16BIT         0
+#define OP_SIZE_32BIT         1
+#define DPL_KERNEL            0
+#define DPL_USER              3
+#define GRANULARITY_BYTE      0
+#define GRANULARITY_KBYTE     1
+#define DESC_TYPE_SYSTEM      0
+#define DESC_TYPE_CODEDATA    1
+
+#define DESC_TYPE_DATA        0
+#define DESC_TYPE_CODE        (1 << 3)
+#define DESC_TYPE_EXPAND_UP   0
+#define DESC_TYPE_EXPAND_DOWN (1 << 2)
+#define DESC_TYPE_RO          0
+#define DESC_TYPE_RW          (1 << 1)
+#define DESC_TYPE_XO          0
+#define DESC_TYPE_RX          (1 << 1)
+
 struct gdt_entry {
     uint16_t limit_lower;
     uint16_t address_lower;
@@ -114,10 +136,10 @@ setup_interrupt_gate(union idt_entry *entry, void *handler)
 
     entry->interrupt_gate.offset_lower     = handler_as_int & 0xFFFF;
     entry->interrupt_gate.offset_upper     = (handler_as_int >> 16) & 0xFFFF;
-    entry->interrupt_gate.segment_selector = 0x08; /* kernelspace code segment */
-    entry->interrupt_gate.id_bits          = 0x06;
-    entry->interrupt_gate.gate_size        = 1; /* 32-bit */
-    entry->interrupt_gate.dpl              = 0; /* change to 3 when we start using userspace */
+    entry->interrupt_gate.segment_selector = SEGMENT_KERNEL_CODE;
+    entry->interrupt_gate.id_bits          = IDT_INTERRUPT_GATE;
+    entry->interrupt_gate.gate_size        = GATE_SIZE_32BIT;
+    entry->interrupt_gate.dpl              = DPL_KERNEL; /* change to DPL_USER when we start using userspace */
     entry->interrupt_gate.present          = 1;
 }
 
@@ -154,18 +176,17 @@ gdt_init(void)
 
         gdt[i].segment_present        = 1;
         gdt[i].is_64                  = 0;
-        gdt[i].default_operation_size = 1; /* 32-bit */
-        gdt[i].granularity            = 1; /* XXX for now */
-        //gdt[i].granularity            = 0; /* byte-level (the example uses kbyte level?) */
+        gdt[i].default_operation_size = OP_SIZE_32BIT;
+        gdt[i].granularity            = GRANULARITY_KBYTE;
         gdt[i].avl                    = 0;
-        gdt[i].descriptor_type        = 1;
+        gdt[i].descriptor_type        = DESC_TYPE_CODEDATA;
     }
 
-    gdt[1].type = gdt[3].type = 0x0A;
-    gdt[2].type = gdt[4].type = 0x02;
+    gdt[1].type = gdt[3].type = DESC_TYPE_CODE | DESC_TYPE_RX;
+    gdt[2].type = gdt[4].type = DESC_TYPE_DATA | DESC_TYPE_RW;
 
-    gdt[1].dpl = gdt[2].dpl = 0;
-    gdt[3].dpl = gdt[4].dpl = 3;
+    gdt[1].dpl = gdt[2].dpl = DPL_KERNEL;
+    gdt[3].dpl = gdt[4].dpl = DPL_USER;
 
     gdt_ptr.limit = sizeof(gdt) - 1;
     gdt_ptr.first = gdt;

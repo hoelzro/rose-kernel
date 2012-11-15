@@ -1,8 +1,11 @@
-MBOOT_PAGE_ALIGN EQU 1<<0
-MBOOT_MEM_INFO   EQU 1<<1
-MBOOT_MAGIC      EQU 0x1BADB002
-MBOOT_FLAGS      EQU MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
-MBOOT_CHECKSUM   EQU -(MBOOT_MAGIC + MBOOT_FLAGS)
+MBOOT_PAGE_ALIGN    EQU 1<<0
+MBOOT_MEM_INFO      EQU 1<<1
+MBOOT_MAGIC         EQU 0x1BADB002
+MBOOT_FLAGS         EQU MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
+MBOOT_CHECKSUM      EQU -(MBOOT_MAGIC + MBOOT_FLAGS)
+CR0_PE              EQU 1<<0
+SEGMENT_KERNEL_DATA EQU 0x10
+SEGMENT_KERNEL_CODE EQU 0x08
 
 BITS 32
 
@@ -34,21 +37,19 @@ _hang:
 GLOBAL protected_mode_start
 
 protected_mode_start:
-    MOV EAX, 0x10
+    MOV EAX, SEGMENT_KERNEL_DATA
 
-    ; set up data segment selectors with kernel space data selector
     MOV DS, EAX
     MOV ES, EAX
     MOV FS, EAX
     MOV GS, EAX
     MOV SS, EAX
 
-    ; turn on protected mode
     MOV EAX, CR0
-    OR AL, 1
+    OR AL, CR0_PE
     MOV CR0, EAX
 
-    JMP 0x08:flush ; perform far jump to set CS to kernel space code selector
+    JMP SEGMENT_KERNEL_CODE:flush ; perform far jump to set CS to kernel space code selector
 
 flush:
     RET

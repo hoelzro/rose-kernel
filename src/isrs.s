@@ -1,3 +1,6 @@
+SEGMENT_KERNEL_DATA EQU 0x10
+SEGMENT_KERNEL_CODE EQU 0x08
+
 GLOBAL asm_general_isr
 
 EXTERN general_isr
@@ -9,7 +12,7 @@ asm_general_isr:
     MOV AX, DS
     PUSH EAX
 
-    MOV AX, 0x10
+    MOV AX, SEGMENT_KERNEL_DATA
     MOV DS, AX
     MOV ES, AX
     MOV FS, AX

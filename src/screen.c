@@ -7,6 +7,7 @@ static volatile unsigned short *vram = (unsigned short *) 0xB8000;
 #define ROWS 25
 
 #define MAX_DIGITS 64
+#define COLOR_GREY 0x07
 
 static char char_map[] = "0123456789";
 
@@ -48,7 +49,7 @@ void
 screen_write_char_at(char c, int x, int y)
 {
     int vram_index = COLS * y + x;
-    vram[vram_index] = 0x0700 | c;
+    vram[vram_index] = (COLOR_GREY << 8) | c;
 }
 
 int

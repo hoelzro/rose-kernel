@@ -4,6 +4,9 @@
 #include <rose/stdint.h>
 #include <rose/descriptor-tables.h>
 
+#define NMI_PORT           0x70
+#define NMI_INTERRUPTS_OFF 0x80
+
 extern void protected_mode_start(void);
 
 struct registers {
@@ -34,7 +37,7 @@ void
 disable_interrupts(void)
 {
     asm volatile ("CLI"); /* disable maskable interrupts */
-    io_outb(0x70, io_inb(0x70) | 0x80); /* disable NMI */
+    io_outb(NMI_PORT, io_inb(NMI_PORT) | NMI_INTERRUPTS_OFF);
 }
 
 void
