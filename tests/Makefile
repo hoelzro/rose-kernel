@@ -1,9 +1,10 @@
 CFLAGS+=-m32 -Wall -Wextra -I../include
 
 run: verify-gdt verify-idt verify-stdarg
-	./verify-gdt
-	./verify-idt
-	./verify-stdarg
+	@for test in $^; do \
+	    echo ./$$test ; \
+	    ./$$test ; \
+	done
 
 verify-gdt: verify-gdt.c ../src/descriptor-tables.o
 	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
