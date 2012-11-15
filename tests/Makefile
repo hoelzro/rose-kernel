@@ -1,6 +1,8 @@
 CFLAGS+=-m32 -Wall -Wextra -I../include
 
-run: verify-gdt verify-idt verify-stdarg
+TESTS=$(shell ls verify-*.c | sed -e 's/.c$$//')
+
+run: $(TESTS)
 	@for test in $^; do \
 	    echo ./$$test ; \
 	    ./$$test ; \
