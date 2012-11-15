@@ -43,6 +43,10 @@ struct gdt_pointer {
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
+/* NOTE: If this is ever used outside of the context of
+ *       setting up for protected mode, we need to refresh
+ *       the segment selectors.
+ */
 static void
 _gdt_set(struct gdt_pointer *gdt)
 {
