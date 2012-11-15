@@ -1,7 +1,11 @@
 ASFLAGS=-f elf
-CFLAGS+=-m32 -march=i686 -mtune=generic -Wall -Wextra -Werror -nostdlib \
-        -fno-builtin -nostartfiles -nodefaultlibs -Wno-error=unused-function \
-	-I../include
+CFLAGS+=-m32 -march=i686 -mtune=generic -nostdlib \
+        -fno-builtin -nostartfiles -nodefaultlibs -I../include
+CFLAG_WARNINGS+=-Wall -Wextra -Werror -Wno-error=unused-function
+
+ifeq ($(NOWARNINGS),)
+CFLAGS+=$(CFLAG_WARNINGS)
+endif
 
 KERNEL_PIECES=$(shell ls *.c *.s | sed -e 's/[cs]$$/o/')
 
