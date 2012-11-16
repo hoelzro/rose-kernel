@@ -1,6 +1,7 @@
 ASFLAGS=-f elf
 CFLAGS+=-m32 -march=i686 -mtune=generic -nostdlib \
-        -fno-builtin -nostartfiles -nodefaultlibs -I../include
+        -fno-builtin -nostartfiles -nodefaultlibs -I../include \
+        -masm=intel
 CFLAG_WARNINGS+=-Wall -Wextra -Werror -Wno-error=unused-function
 
 ifeq ($(NOWARNINGS),)

@@ -50,8 +50,8 @@ struct gdt_pointer gdt_ptr;
 static void
 _gdt_set(struct gdt_pointer *gdt)
 {
-    asm("movl %0, %%eax;"
-        "lgdt (%%eax);"
+    asm("MOV EAX, %0;"
+        "LGDT [EAX];"
        :
        : "m"(gdt)
        : "eax"

@@ -146,8 +146,8 @@ _general_isr(struct registers regs)
 void
 _idt_set(struct idt_pointer *ptr)
 {
-    asm("movl %0, %%eax;"
-        "lidt (%%eax);"
+    asm("MOV EAX, %0;"
+        "LIDT [EAX];"
        :
        : "m"(ptr)
        : "eax"
