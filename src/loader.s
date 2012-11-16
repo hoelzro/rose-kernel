@@ -13,6 +13,7 @@ GLOBAL mboot
 EXTERN code
 EXTERN bss
 EXTERN end
+EXTERN stack
 
 mboot:
     DD MBOOT_MAGIC
@@ -28,6 +29,7 @@ GLOBAL start
 EXTERN kmain
 
 start:
+    MOV ESP, stack
     PUSH EBX
     CALL kmain
 _hang:

@@ -29,5 +29,8 @@ SECTIONS
         ebss = .;
     }
 
+    .     = . + 0x4000;
+    stack = .;
+
     end = .;
 }
