@@ -1,5 +1,6 @@
 #include <rose/memory.h>
 #include <rose/stdint.h>
+#include <rose/string.h>
 
 #define OP_SIZE_16BIT         0
 #define OP_SIZE_32BIT         1
@@ -82,6 +83,8 @@ struct page_directory {
 
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
+
+struct page_directory kernel_pages __attribute__((aligned (PAGE_SIZE)));
 
 /* NOTE: If this is ever used outside of the context of
  *       setting up for protected mode, we need to refresh
@@ -182,4 +185,38 @@ memory_init_gdt(void)
 void
 memory_init_paging(void)
 {
+    extern char start[];
+    extern char end[];
+    uint32_t ok_to_alloc = (uint32_t) end;
+    uint32_t page        = (uint32_t) start; /* XXX we're taking for granted that start is page-aligned */
+
+    /* find the next page-aligned address after end */
+    ok_to_alloc &= ~(PAGE_SIZE - 1);
+    ok_to_alloc += PAGE_SIZE;
+
+    memset(&kernel_pages, 0, sizeof(kernel_pages));
+    /* XXX <=? */
+    for(; page < (uint32_t) end; page += PAGE_SIZE) {
+        struct page_table *table;
+        uint16_t directory_entry_index;
+        uint16_t table_entry_index;
+
+        directory_entry_index = page >> 22;
+        table_entry_index     = (page >> 12) & 0x03ff;
+
+        if(! kernel_pages.entries[directory_entry_index].present) {
+            kernel_pages.entries[directory_entry_index].present    = 1;
+            kernel_pages.entries[directory_entry_index].is_rw      = 1;
+            kernel_pages.entries[directory_entry_index].page_table = ok_to_alloc >> 12; /* XXX encapsulate */
+
+            ok_to_alloc += sizeof(struct page_table);
+        }
+        table = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
+
+        table->entries[table_entry_index].present = 1;
+        table->entries[table_entry_index].is_rw   = 1;
+        table->entries[table_entry_index].page    = page >> 12;
+    }
+
+    _cr3_set(&kernel_pages);
 }
