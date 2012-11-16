@@ -9,7 +9,7 @@ static volatile unsigned short *vram = (unsigned short *) 0xB8000;
 #define MAX_DIGITS 64
 #define COLOR_GREY 0x07
 
-static char char_map[] = "0123456789";
+static char char_map[] = "0123456789ABCDEF";
 
 static const char *
 itoa(long value, int radix)
