@@ -113,6 +113,21 @@ _gdt_entry_set_limit(struct gdt_entry *entry, uint32_t limit)
     entry->limit_high  = (limit >> 16) & 0x0F;
 }
 
+static void
+_cr3_set(struct page_directory *dir)
+{
+    asm(
+        "MOV EAX, %0;"
+        "MOV CR3, EAX;"
+        "MOV EAX, CR0;"
+        "OR EAX, 0x8000000;" /* XXX can we get rid of this magic number? */
+        "MOV CR0, EAX;"
+       :
+       : "m"(dir)
+       : "eax"
+       );
+}
+
 /* The GDT should contain five segment descriptors:
  *
  *  0: Null Segment
