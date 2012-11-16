@@ -19,6 +19,10 @@
 #define DESC_TYPE_XO          0
 #define DESC_TYPE_RX          (1 << 1)
 
+#define PAGE_SIZE_4KB 0
+#define PAGE_SIZE_4MB 1
+#define PAGE_SIZE     4096
+
 struct gdt_entry {
     uint16_t limit_lower;
     uint16_t address_lower;
@@ -38,6 +42,42 @@ struct gdt_entry {
 struct gdt_pointer {
     uint16_t limit;
     struct gdt_entry *first;
+} __attribute__((packed));
+
+struct page_table_entry {
+    uint8_t  present                  : 1;
+    uint8_t  is_rw                    : 1;
+    uint8_t  is_user_permitted        : 1;
+    uint8_t  page_level_write_through : 1;
+    uint8_t  page_level_cache_disable : 1;
+    uint8_t  accessed                 : 1;
+    uint8_t  dirty                    : 1;
+    uint8_t  pat                      : 1;
+    uint8_t  is_global                : 1;
+    uint8_t  reserved0                : 3;
+    uint32_t page                     : 20; /* we need to right-pad this by 12 0 bits */
+
+} __attribute__((packed));
+
+struct page_table {
+    struct page_table_entry entries[PAGE_SIZE / sizeof(struct page_table_entry)];
+} __attribute__((packed));
+
+struct page_directory_entry {
+    uint8_t  present                  : 1;
+    uint8_t  is_rw                    : 1;
+    uint8_t  is_user_permitted        : 1;
+    uint8_t  page_level_write_through : 1;
+    uint8_t  page_level_cache_disable : 1;
+    uint8_t  accessed                 : 1;
+    uint8_t  reserved0                : 1;
+    uint8_t  page_size                : 1;
+    uint8_t  reserved1                : 4;
+    uint32_t page_table               : 20; /* we need to right-pad this by 12 0 bits */
+} __attribute__((packed));
+
+struct page_directory {
+    struct page_directory_entry entries[PAGE_SIZE / sizeof(struct page_directory_entry)];
 } __attribute__((packed));
 
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
