@@ -163,3 +163,8 @@ memory_init_gdt(void)
 
     _gdt_set(&gdt_ptr);
 }
+
+void
+memory_init_paging(void)
+{
+}
