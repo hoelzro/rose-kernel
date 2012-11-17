@@ -22,7 +22,7 @@ memchr(const void *s, int c, size_t n)
     const char *p = s;
     while(n) {
         if(*p == c) {
-            return (void *) s;
+            return (void *) p;
         }
         p++;
         n--;
