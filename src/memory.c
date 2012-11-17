@@ -86,6 +86,9 @@ struct gdt_pointer gdt_ptr;
 
 struct page_directory kernel_pages __attribute__((aligned (PAGE_SIZE)));
 
+#ifdef ROSE_TESTING
+extern void _gdt_set(struct gdt_pointer *gdt);
+#else
 /* NOTE: If this is ever used outside of the context of
  *       setting up for protected mode, we need to refresh
  *       the segment selectors.
@@ -100,6 +103,7 @@ _gdt_set(struct gdt_pointer *gdt)
        : "eax"
        );
 }
+#endif
 
 static void
 _gdt_entry_set_base(struct gdt_entry *entry, uint32_t base)

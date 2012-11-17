@@ -143,6 +143,9 @@ _general_isr(struct registers regs)
     screen_write_integer_at(regs.interrupt_no, 16, 22, 1);
 }
 
+#ifdef ROSE_TESTING
+extern void _idt_set(struct idt_pointer *ptr);
+#else
 static void
 _idt_set(struct idt_pointer *ptr)
 {
@@ -153,6 +156,7 @@ _idt_set(struct idt_pointer *ptr)
        : "eax"
        );
 }
+#endif
 
 void
 interrupts_init(void)

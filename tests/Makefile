@@ -1,4 +1,4 @@
-CFLAGS+=-m32 -masm=intel -Wall -Wextra -I../include -g
+CFLAGS+=-m32 -masm=intel -Wall -Wextra -I../include -g -DROSE_TESTING=1
 
 TESTS=$(shell ls verify-*.c | sed -e 's/.c$$//')
 
