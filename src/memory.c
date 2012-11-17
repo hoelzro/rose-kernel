@@ -120,6 +120,9 @@ _gdt_entry_set_limit(struct gdt_entry *entry, uint32_t limit)
     entry->limit_high  = (limit >> 16) & 0x0F;
 }
 
+#ifdef ROSE_TESTING
+extern void _cr3_set(struct page_directory *dir);
+#else
 static void
 _cr3_set(struct page_directory *dir)
 {
@@ -134,6 +137,7 @@ _cr3_set(struct page_directory *dir)
        : "eax"
        );
 }
+#endif
 
 /* The GDT should contain five segment descriptors:
  *
