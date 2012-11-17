@@ -30,3 +30,12 @@ isr28 = 0x1111CCCC;
 isr29 = 0x1111DDDD;
 isr30 = 0x1111EEEE;
 isr31 = 0x1111FFFF;
+
+start = 0x200000;
+end   = start + 0x8800;
+
+screen_write_string_at  = 0x0;
+screen_write_integer_at = 0x0;
+
+io_inb  = 0x0;
+io_outb = 0x0;
