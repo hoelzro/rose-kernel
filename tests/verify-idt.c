@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <rose/descriptor-tables.h>
+#include <rose/interrupts.h>
 
 struct idt_pointer {
     uint16_t limit;
@@ -25,7 +25,7 @@ screen_write_string_at(const char *s, int x, int y)
 static int idt_set_called = 0;
 
 void
-idt_set(struct idt_pointer *idt)
+_idt_set(struct idt_pointer *idt)
 {
     uint64_t *entries = (uint64_t *) idt->base;
 
@@ -70,7 +70,7 @@ idt_set(struct idt_pointer *idt)
 int
 main(void)
 {
-    idt_init();
+    interrupts_init();
     assert(idt_set_called);
     return 0;
 }

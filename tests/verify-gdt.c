@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <rose/descriptor-tables.h>
+#include <rose/memory.h>
 
 void
 idt_set(void *p)
@@ -25,7 +25,7 @@ struct gdt_pointer {
 static int gdt_set_called = 0;
 
 void
-gdt_set(struct gdt_pointer *gdt)
+_gdt_set(struct gdt_pointer *gdt)
 {
     uint64_t *entries = (uint64_t *) gdt->base;
 
@@ -42,7 +42,7 @@ gdt_set(struct gdt_pointer *gdt)
 int
 main(void)
 {
-    gdt_init();
+    memory_init_gdt();
     assert(gdt_set_called);
     return 0;
 }
