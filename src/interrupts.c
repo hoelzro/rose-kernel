@@ -143,7 +143,7 @@ _general_isr(struct registers regs)
     screen_write_integer_at(regs.interrupt_no, 16, 22, 1);
 }
 
-void
+static void
 _idt_set(struct idt_pointer *ptr)
 {
     asm("MOV EAX, %0;"
