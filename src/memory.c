@@ -187,12 +187,10 @@ memory_init_gdt(void)
 }
 
 void
-memory_init_paging(void)
+memory_init_paging(void *kernel_start, void *kernel_end)
 {
-    extern char start[];
-    extern char end[];
-    uint32_t ok_to_alloc = (uint32_t) end;
-    uint32_t page        = (uint32_t) start; /* XXX we're taking for granted that start is page-aligned */
+    uint32_t ok_to_alloc = (uint32_t) kernel_end;
+    uint32_t page        = (uint32_t) kernel_start; /* XXX we're taking for granted that kernel_start is page-aligned */
 
     /* find the next page-aligned address after end */
     ok_to_alloc &= ~(PAGE_SIZE - 1);
@@ -200,7 +198,7 @@ memory_init_paging(void)
 
     memset(&kernel_pages, 0, sizeof(kernel_pages));
     /* XXX <=? */
-    for(; page < (uint32_t) end; page += PAGE_SIZE) {
+    for(; page < (uint32_t) kernel_end; page += PAGE_SIZE) {
         struct page_table *table;
         uint16_t directory_entry_index;
         uint16_t table_entry_index;

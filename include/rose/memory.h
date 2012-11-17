@@ -2,6 +2,6 @@
 #define ROSE_MEMORY_H
 
 void memory_init_gdt(void);
-void memory_init_paging(void);
+void memory_init_paging(void *kernel_start, void *kernel_end);
 
 #endif
