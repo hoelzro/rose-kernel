@@ -123,7 +123,7 @@ _cr3_set(struct page_directory *dir)
         "MOV EAX, %0;"
         "MOV CR3, EAX;"
         "MOV EAX, CR0;"
-        "OR EAX, 0x8000000;" /* XXX can we get rid of this magic number? */
+        "OR EAX, 1 << 31;" /* XXX can we get rid of this magic number? */
         "MOV CR0, EAX;"
        :
        : "m"(dir)
