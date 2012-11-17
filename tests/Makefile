@@ -8,10 +8,10 @@ run: $(TESTS)
 	    ./$$test ; \
 	done
 
-verify-gdt: verify-gdt.c ../src/descriptor-tables.o
+verify-gdt: verify-gdt.c ../src/memory.o
 	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
 
-verify-idt: verify-idt.c ../src/descriptor-tables.o
+verify-idt: verify-idt.c ../src/interrupts.o
 	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
 
 verify-stdarg: verify-stdarg.c ../src/stdarg.o
