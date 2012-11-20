@@ -10,6 +10,12 @@ idt_set(void *p)
 }
 
 void
+_cr3_set(void *p)
+{
+    (void)p;
+}
+
+void
 screen_write_string_at(const char *s, int x, int y)
 {
     (void)s;
