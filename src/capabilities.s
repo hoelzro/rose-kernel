@@ -4,21 +4,21 @@ EXTENDED_FEATURE_FLAGS EQU 0x80000001
 APIC_PRESENT     EQU 1<<9
 LONGMODE_ENABLED EQU 1<<29
 
-GLOBAL capabilities_is_64bit
-GLOBAL capabilities_has_apic
-
 ; XXX verify that the CPU supports CPUID!
 
-capabilities_is_64bit:
+; name, EAX_VALUE, REG, BIT
+%MACRO GEN_CAPS 4
+GLOBAL %1
+%1:
     PUSH EBX
     PUSH ECX
     PUSH EDX
 
-    MOV EAX, EXTENDED_FEATURE_FLAGS
+    MOV EAX, %2
     CPUID
 
     MOV EAX, 0
-    AND EDX, LONGMODE_ENABLED
+    AND %3, %4
     SETNZ AL
 
     POP EDX
@@ -26,21 +26,7 @@ capabilities_is_64bit:
     POP EBX
 
     RET
+%ENDMACRO
 
-capabilities_has_apic:
-    PUSH EBX
-    PUSH ECX
-    PUSH EDX
-
-    MOV EAX, FEATURE_FLAGS
-    CPUID
-
-    MOV EAX, 0
-    AND EDX, APIC_PRESENT
-    SETNZ AL
-
-    POP EDX
-    POP ECX
-    POP EBX
-
-    RET
+GEN_CAPS capabilities_is_64bit, EXTENDED_FEATURE_FLAGS, EDX, LONGMODE_ENABLED
+GEN_CAPS capabilities_has_apic, FEATURE_FLAGS, EDX, APIC_PRESENT
