@@ -201,8 +201,9 @@ memory_init_paging(void *kernel_start, void *kernel_end)
     ok_to_alloc += PAGE_SIZE;
 
     memset(&kernel_pages, 0, sizeof(kernel_pages));
-    /* XXX <=? */
-    for(; page < (uint32_t) kernel_end; page += PAGE_SIZE) {
+    /* we map an extra page here in case we fill up a page table with kernel
+     * memory entirely; that way we have room for more tables later. */
+    for(; page < (uint32_t) ok_to_alloc + PAGE_SIZE; page += PAGE_SIZE) {
         struct page_table *table;
         uint16_t directory_entry_index;
         uint16_t table_entry_index;
