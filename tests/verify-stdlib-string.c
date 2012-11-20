@@ -48,11 +48,26 @@ verify_memchr(void)
 static void
 verify_memcmp(void)
 {
+    const char *lhs    = "foo ";
+    const char *rhs    = "food";
+
+    assert(memcmp(lhs, rhs, 3) == 0);
+    assert(memcmp(lhs, rhs, 4) == ' ' - 'd');
+    assert(memcmp(lhs, rhs, 0) == 0);
 }
 
 static void
 verify_memcpy(void)
 {
+    char dest[5] = { 0, 0, 0, 0, 1 };
+    const char *src = "food";
+
+    assert(memcpy(dest, src, 4) == dest);
+
+    assert(memcmp(dest, src, 4) == 0);
+    assert(memcmp(dest, src, 5) == 1);
+    assert(memcpy(dest + 2, src, 3) == (dest + 2));
+    assert(memcmp(dest, "fofoo", 5) == 0);
 }
 
 static void
@@ -63,11 +78,24 @@ verify_memmove(void)
 static void
 verify_strcat(void)
 {
+    char string[10] = { 'f', 'o', 'o', '\0' };
+
+    assert(strcat(string, "bar") == string);
+    assert(memcmp(string, "foobar", 6) == 0);
+    assert(strcat(string, "baz") == string);
+    assert(memcmp(string, "foobarbaz", 9) == 0);
 }
 
 static void
 verify_strchr(void)
 {
+    char *s = "abcdefghijklmnopqrstuvwxyz";
+    unsigned int i;
+
+    for(i = 0; i < sizeof(s) - 1; i++) {
+        assert(strchr(s, s[i]) == s + i);
+    }
+    assert(strchr(s, ' ') == NULL);
 }
 
 static void
