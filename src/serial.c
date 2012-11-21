@@ -1,5 +1,6 @@
 #include <rose/io.h>
 #include <rose/serial.h>
+#include <rose/stream.h>
 
 #define COM1_PORT 0x03F8
 
@@ -21,14 +22,50 @@ is_transmit_empty(void)
     return io_inb(COM1_PORT + 5) & 0x20;
 }
 
-void
-serial_write(const char *s)
+static int
+_write_char_to_serial(struct stream *stream, char c)
 {
-    /* it would be nice to use interrupts to check if we're ready to transmit */
-    while(*s) {
-        while(! is_transmit_empty());
+    (void) stream;
 
-        io_outb(COM1_PORT, *s);
-        s++;
-    }
+    while(! is_transmit_empty());
+
+    io_outb(COM1_PORT, c);
+
+    return 1;
+}
+
+static struct stream serial_stream = {
+    .write_char = _write_char_to_serial,
+};
+
+int
+serial_write_char(char c)
+{
+    return stream_write_char(&serial_stream, c);
+}
+
+int
+serial_write_string(const char *s)
+{
+    return stream_write_string(&serial_stream, s);
+}
+
+int
+serial_write_integer(int radix, int n)
+{
+    return stream_write_integer(&serial_stream, radix, n);
+}
+
+int
+serial_printf(const char *fmt, ...)
+{
+    va_list args;
+    int chars_written;
+
+    va_start(args, fmt);
+
+    chars_written = stream_vprintf(&serial_stream, fmt, args);
+    va_end(args);
+
+    return chars_written;
 }
