@@ -71,12 +71,9 @@ stream_write_integer(struct stream *stream, int radix, int n)
 }
 
 int
-stream_printf(struct stream *stream, const char *fmt, ...)
+stream_vprintf(struct stream *stream, const char *fmt, va_list args)
 {
-    va_list args;
     int chars_written = 0;
-
-    va_start(args, fmt);
 
     for(; *fmt; fmt++) {
         if(*fmt == '%') {
@@ -115,7 +112,15 @@ stream_printf(struct stream *stream, const char *fmt, ...)
         }
     }
 
-    va_end(args);
-
     return chars_written;
+}
+
+int
+stream_printf(struct stream *stream, const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+
+    return stream_vprintf(stream, fmt, args);
 }
