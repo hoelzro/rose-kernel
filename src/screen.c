@@ -1,81 +1,60 @@
-#include <rose/stdarg.h>
 #include <rose/screen.h>
+#include <rose/stdarg.h>
+#include <rose/stream.h>
 
 static volatile unsigned short *vram = (unsigned short *) 0xB8000;
 
 #define COLS 80
 #define ROWS 25
 
-#define MAX_DIGITS 64
 #define COLOR_GREY 0x07
 
-static char char_map[] = "0123456789ABCDEF";
+struct screen_stream {
+    struct stream stream;
 
-static const char *
-itoa(long value, int radix)
+    volatile unsigned short *buffer;
+};
+
+static int
+screen_write_char(struct screen_stream *memory, char c)
 {
-    static char buffer[MAX_DIGITS + 2];
-    char *p;
-    int is_negative;
+    memory->buffer[0] = (COLOR_GREY << 8) | c;
+    memory->buffer++;
 
-    p = buffer + sizeof(buffer) - 1;
+    return 1;
+}
 
-    is_negative = value < 0;
+static struct screen_stream stream = {
+    .stream = {
+        .write_char = (int (*)(struct stream *, char)) screen_write_char,
+    },
+};
 
-    if(is_negative) {
-        is_negative *= -1;
-    }
-
-    *p = '\0';
-    --p;
-
-    while(value >= radix) {
-        *p = char_map[value % radix];
-        --p;
-        value /= radix;
-    }
-
-    *p = char_map[value];
-
-    if(is_negative) {
-        --p;
-        *p = '-';
-    }
-
-    return p;
+static void
+_set_stream_offset(struct screen_stream *stream, int x, int y)
+{
+    stream->buffer = vram + y * COLS + x;
 }
 
 void
 screen_write_char_at(char c, int x, int y)
 {
-    int vram_index = COLS * y + x;
-    vram[vram_index] = (COLOR_GREY << 8) | c;
+    _set_stream_offset(&stream, x, y);
+    stream_write_char((struct stream *) &stream, c);
 }
 
 int
 screen_write_string_at(const char *s, int x, int y)
 {
-    int length = 0;
-
-    while(*s) {
-        screen_write_char_at(*s, x, y);
-
-        s++;
-        x++;
-        length++;
-    }
-
-    return length;
+    _set_stream_offset(&stream, x, y);
+    return stream_write_string((struct stream *) &stream, s);
 }
 
 int
 screen_write_integer_at(long value, int radix, int x, int y)
 {
-    const char *string_form;
-
-    string_form = itoa(value, radix);
-
-    return screen_write_string_at(string_form, x, y);
+    _set_stream_offset(&stream, x, y);
+    return stream_write_integer((struct stream *) &stream, radix, value);
 }
 
 void
@@ -100,41 +79,8 @@ screen_printf(int x, int y, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
+    _set_stream_offset(&stream, x, y);
 
-    for(; *fmt && x < COLS; fmt++) {
-        if(*fmt == '%') {
-            fmt++;
-            char next = *fmt;
-
-            switch(next) {
-                case '\0':
-                    fmt--; /* make sure we pick it up in the condition */
-                    break;
-                case 'd': {
-                    int value = va_arg(args, int);
-                    x += screen_write_integer_at(value, 10, x, y);
-                    break;
-                }
-                case 'p':
-                    x += screen_write_string_at("0x", x, y);
-                case 'x': {
-                    int value = va_arg(args, int);
-                    x += screen_write_integer_at(value, 16, x, y);
-                    break;
-                }
-                case 's': {
-                    const char *value = va_arg(args, const char *);
-                    x += screen_write_string_at(value, x, y);
-                    break;
-                }
-                default:
-                    screen_write_char_at('%', x++, y);
-                    screen_write_char_at(next, x++, y);
-            }
-        } else {
-            screen_write_char_at(*fmt, x++, y);
-        }
-    }
-
+    stream_vprintf((struct stream *) &stream, fmt, args);
     va_end(args);
 }
