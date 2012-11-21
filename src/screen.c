@@ -84,3 +84,18 @@ screen_printf(int x, int y, const char *fmt, ...)
     stream_vprintf((struct stream *) &stream, fmt, args);
     va_end(args);
 }
+
+void
+screen_scroll_up(void)
+{
+    volatile unsigned short *dest = vram;
+    volatile unsigned short *src  = vram + COLS;
+    int i;
+
+    for(i = 0; i < (ROWS - 1) * COLS; i++) {
+        *dest++ = *src++;
+    }
+    for(i = 0; i < COLS; i++) {
+        *dest++ = ' ';
+    }
+}
