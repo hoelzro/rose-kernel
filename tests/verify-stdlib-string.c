@@ -145,6 +145,8 @@ verify_strcpy(void)
 static void
 verify_strlen(void)
 {
+    assert(strlen("") == 0);
+    assert(strlen("abc123") == 6);
 }
 
 static void
