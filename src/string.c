@@ -65,15 +65,33 @@ memcpy(void *dest, const void *src, size_t n)
     return dest;
 }
 
-/* XXX implement me! */
 void *
 memmove(void *dest, const void *src, size_t n)
 {
-    (void) dest;
-    (void) src;
-    (void) n;
+    char *dest_c      = dest;
+    const char *src_c = src;
 
-    return NULL;
+    if(dest < src) {
+        while(n) {
+            *dest_c = *src_c;
+
+            dest_c++;
+            src_c++;
+            n--;
+        }
+    } else {
+        dest_c += n - 1;
+        src_c  += n - 1;
+
+        while(n) {
+            *dest_c = *src_c;
+
+            dest_c--;
+            src_c--;
+            n--;
+        }
+    }
+    return dest;
 }
 
 char *
