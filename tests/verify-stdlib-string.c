@@ -73,6 +73,40 @@ verify_memcpy(void)
 static void
 verify_memmove(void)
 {
+    char buffer[10];
+    int i;
+
+    for(i = 0; i < 10; i++) {
+        buffer[i] = 'a';
+    }
+
+    /* test no-op situation */
+    assert(memmove(buffer, buffer, 10) == buffer);
+
+    assert(memcmp(buffer, "aaaaaaaaaa", 10) == 0);
+
+    for(i = 0; i < 5; i++) {
+        buffer[i] = 'b';
+    }
+
+    /* test no overlap situation */
+    assert(memmove(buffer + 5, buffer, 5) == (buffer + 5));
+    assert(memcmp(buffer, "bbbbbbbbbb", 10) == 0);
+
+    for(i = 0; i < 10; i++) {
+        buffer[i] = 'a' + i;
+    }
+
+    /* test overlap: dest < src */
+    assert(memmove(buffer, buffer + 3, 7) == buffer);
+    assert(memcmp(buffer, "defghijhij", 10) == 0);
+
+    /* test overlap: src < dest */
+    for(i = 0; i < 10; i++) {
+        buffer[i] = 'a' + i;
+    }
+    assert(memmove(buffer + 3, buffer, 7) == (buffer + 3));
+    assert(memcmp(buffer, "abcabcdefg", 10) == 0);
 }
 
 static void
