@@ -139,7 +139,8 @@ strlen(const char *s)
 char *
 strncat(char * lhs, const char * rhs, size_t n)
 {
-    return strncpy(lhs + strlen(lhs), rhs, n);
+    strncpy(lhs + strlen(lhs), rhs, n + 1);
+    return lhs;
 }
 
 int
