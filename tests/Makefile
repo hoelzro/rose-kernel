@@ -23,5 +23,8 @@ verify-stdlib-string: verify-stdlib-string.c ../src/string.o
 verify-paging: verify-paging.c ../src/memory.o
 	gcc $(CFLAGS) -o $@ $^
 
+verify-stream: verify-stream.c ../src/stream.o ../src/stdarg.o
+	gcc $(CFLAGS) -o $@ $^
+
 clean:
-	rm -f *.o verify-gdt verify-idt verify-stdarg verify-stdlib-string verify-paging
+	rm -f *.o verify-gdt verify-idt verify-stdarg verify-stdlib-string verify-paging verify-stream
