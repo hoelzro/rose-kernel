@@ -15,11 +15,9 @@ gdt_set(void *p)
 }
 
 void
-screen_write_string_at(const char *s, int x, int y)
+console_printf(const char *fmt, ...)
 {
-    (void)s;
-    (void)x;
-    (void)y;
+    (void)fmt;
 }
 
 static int idt_set_called = 0;

@@ -1,6 +1,6 @@
+#include <rose/console.h>
 #include <rose/interrupts.h>
 #include <rose/io.h>
-#include <rose/screen.h>
 #include <rose/string.h>
 
 #define SEGMENT_KERNEL_CODE   0x08
@@ -139,8 +139,7 @@ _setup_interrupt_gate(union idt_entry *entry, void *handler)
 void
 _general_isr(struct registers regs)
 {
-    screen_write_string_at("Handling interrupt: 0x", 0, 1);
-    screen_write_integer_at(regs.interrupt_no, 16, 22, 1);
+    console_printf("Handling interrupt: 0x%x\n", regs.interrupt_no);
 }
 
 #ifdef ROSE_TESTING
