@@ -6,19 +6,12 @@
 static char char_map[] = "0123456789ABCDEF";
 
 static const char *
-itoa(long value, int radix)
+itoa(unsigned long value, unsigned int radix)
 {
     static char buffer[MAX_DIGITS + 2];
     char *p;
-    int is_negative;
 
     p = buffer + sizeof(buffer) - 1;
-
-    is_negative = value < 0;
-
-    if(is_negative) {
-        is_negative *= -1;
-    }
 
     *p = '\0';
     --p;
@@ -30,11 +23,6 @@ itoa(long value, int radix)
     }
 
     *p = char_map[value];
-
-    if(is_negative) {
-        --p;
-        *p = '-';
-    }
 
     return p;
 }
