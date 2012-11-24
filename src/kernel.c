@@ -1,3 +1,4 @@
+#include <rose/console.h>
 #include <rose/interrupts.h>
 #include <rose/screen.h>
 #include <rose/serial.h>
@@ -19,5 +20,5 @@ kmain(void)
     memory_init_paging(0, end);
     /* XXX turn on interrupts? */
 
-    screen_write_string_at("Hello from rOSe (in protected mode!)", 0, 0);
+    console_write_string("Hello from rOSe (in protected mode!)\n");
 }
