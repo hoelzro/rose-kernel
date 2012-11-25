@@ -5,5 +5,6 @@ int capabilities_is_64bit(void);
 int capabilities_has_apic(void);
 int capabilities_has_pae(void);
 int capabilities_has_pse(void);
+int capabilities_has_fpu(void);
 
 #endif
