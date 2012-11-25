@@ -1,17 +1,46 @@
+#include <rose/capabilities.h>
 #include <rose/console.h>
 #include <rose/interrupts.h>
 #include <rose/screen.h>
 #include <rose/serial.h>
+#include <rose/stdint.h>
 #include <rose/memory.h>
+
+#define CR0_MP (1<<1)
+#define CR0_NE (1<<5)
+#define CR0_EM (1<<2)
 
 extern void protected_mode_start(void);
 
 extern char end[];
 
 void
+fpu_init(void)
+{
+    uint32_t mask = 0;
+
+    if(capabilities_has_fpu()) {
+        mask = CR0_MP | CR0_NE;
+    } else {
+        mask = CR0_EM | CR0_NE;
+    }
+
+    asm("MOV EAX, CR0;"
+        "OR EAX, %0;"
+        "MOV CR0, EAX;"
+       :
+       : "r"(mask)
+       : "eax"
+       );
+
+    asm("FINIT");
+}
+
+void
 kmain(void)
 {
     interrupts_disable();
+    fpu_init();
     screen_clear();
     memory_init_gdt();
     interrupts_init();
