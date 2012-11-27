@@ -16,3 +16,14 @@ until I thought of the quote "A rose by any any other name would smell
 as sweet".  I liked the idea of "RoseOS", and when I realized that I
 could backronym it to "Rob's Operating System Experiment", I knew I'd
 found the right name.
+
+# Building & Running
+
+To build the kernel, you'll need:
+
+  * gcc
+  * nasm
+  * make
+
+If you want to run the kernel in a VM, I recommend QEMU.  If you have QEMU and would like
+to use it, simply type `make boot`.
