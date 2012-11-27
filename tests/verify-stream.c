@@ -61,10 +61,38 @@ verify_large_hex_numbers(void)
     destroy_stream(stream);
 }
 
+void
+verify_printf_string(void)
+{
+    struct stream *stream = create_stream();
+    char chars[16];
+
+    stream_printf(stream, "Hello: %s", "foobar");
+    copy_stream_memory(stream, chars, 13);
+    assert(memcmp(chars, "Hello: foobar", 13) == 0);
+
+    destroy_stream(stream);
+}
+
+void
+verify_printf_hex(void)
+{
+    struct stream *stream = create_stream();
+    char chars[16];
+
+    stream_printf(stream, "Hello: %x", 0x172);
+    copy_stream_memory(stream, chars, 10);
+    assert(memcmp(chars, "Hello: 172", 10) == 0);
+
+    destroy_stream(stream);
+}
+
 int
 main(void)
 {
     verify_large_hex_numbers();
+    verify_printf_string();
+    verify_printf_hex();
 
     return 0;
 }
