@@ -8,6 +8,10 @@ int console_write_string(const char *s);
 int console_write_integer(int radix, int n);
 int console_printf(const char *fmt, ...);
 
+void console_reset(void);
+void console_get_cursor(int *x, int *y);
+void console_set_cursor(int x, int y);
+
 struct registers;
 void _console_dump_registers(struct registers *regs);
 

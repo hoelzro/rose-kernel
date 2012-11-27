@@ -85,6 +85,27 @@ console_printf(const char *fmt, ...)
     return chars_written;
 }
 
+void
+console_reset(void)
+{
+    screen_clear();
+    console_set_cursor(0, 0);
+}
+
+void
+console_get_cursor(int *x, int *y)
+{
+    *x = stream.column;
+    *y = stream.row;
+}
+
+void
+console_set_cursor(int x, int y)
+{
+    stream.column = x;
+    stream.row    = y;
+}
+
 struct registers {
     uint32_t edi;
     uint32_t esi;
