@@ -7,6 +7,7 @@ int console_write_char(char c);
 int console_write_string(const char *s);
 int console_write_integer(int radix, int n);
 int console_printf(const char *fmt, ...);
+int console_vprintf(const char *fmt, va_list args);
 
 void console_reset(void);
 void console_get_cursor(int *x, int *y);

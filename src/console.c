@@ -72,6 +72,12 @@ console_write_integer(int radix, int n)
 }
 
 int
+console_vprintf(const char *fmt, va_list args)
+{
+    return stream_vprintf(_get_stream(), fmt, args);
+}
+
+int
 console_printf(const char *fmt, ...)
 {
     va_list args;
