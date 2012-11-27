@@ -4,6 +4,7 @@
 #include <rose/screen.h>
 #include <rose/serial.h>
 #include <rose/stdint.h>
+#include <rose/string.h>
 #include <rose/memory.h>
 
 #define CR0_MP (1<<1)
@@ -34,6 +35,28 @@ fpu_init(void)
        );
 
     asm("FINIT");
+}
+
+void
+panic(const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+
+    console_reset();
+
+    if(fmt) {
+        console_printf("Kernel panic:");
+        console_vprintf(fmt, args);
+        console_printf("\n");
+    } else {
+        console_printf("Kernel panic!\n");
+    }
+
+    console_dump_registers();
+    interrupts_disable();
+    asm("HLT");
 }
 
 void
