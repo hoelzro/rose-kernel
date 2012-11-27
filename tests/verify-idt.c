@@ -9,6 +9,12 @@ struct idt_pointer {
 } __attribute__((packed));
 
 void
+panic(const char *fmt, ...)
+{
+    (void) fmt;
+}
+
+void
 gdt_set(void *p)
 {
     (void)p;
