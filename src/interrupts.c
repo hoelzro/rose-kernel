@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2012 Rob Hoelz <rob at hoelz.ro>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
 #include <rose.h>
 #include <rose/console.h>
 #include <rose/interrupts.h>
@@ -130,6 +152,7 @@ _setup_interrupt_gate(union idt_entry *entry, void *handler)
 
     entry->interrupt_gate.offset_lower     = handler_as_int & 0xFFFF;
     entry->interrupt_gate.offset_upper     = (handler_as_int >> 16) & 0xFFFF;
+    /* This is based on code from http://www.jamesmolloy.co.uk/tutorial_html/4.-The%20GDT%20and%20IDT.html */
     entry->interrupt_gate.segment_selector = SEGMENT_KERNEL_CODE;
     entry->interrupt_gate.id_bits          = IDT_INTERRUPT_GATE;
     entry->interrupt_gate.gate_size        = GATE_SIZE_32BIT;
@@ -210,6 +233,7 @@ void
 interrupts_disable(void)
 {
     asm volatile ("CLI"); /* disable maskable interrupts */
+    /* This is based on code from http://wiki.osdev.org/NMI */
     io_outb(NMI_PORT, io_inb(NMI_PORT) | NMI_INTERRUPTS_OFF);
 }
 
@@ -217,5 +241,6 @@ void
 interrupts_enable(void)
 {
     asm volatile ("STI"); /* enable maskable interrupts */
+    /* This is based on code from http://wiki.osdev.org/NMI */
     io_outb(NMI_PORT, io_inb(NMI_PORT) & ~NMI_INTERRUPTS_OFF);
 }
