@@ -1,3 +1,4 @@
+#include <rose.h>
 #include <rose/console.h>
 #include <rose/interrupts.h>
 #include <rose/io.h>
@@ -139,7 +140,7 @@ _setup_interrupt_gate(union idt_entry *entry, void *handler)
 void
 _general_isr(struct registers regs)
 {
-    console_printf("Handling interrupt: 0x%x\n", regs.interrupt_no);
+    panic("Unexpected interrupt (0x%x)", regs.interrupt_no);
 }
 
 #ifdef ROSE_TESTING
