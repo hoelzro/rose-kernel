@@ -1,6 +1,7 @@
 #include <rose/console.h>
 #include <rose/screen.h>
 #include <rose/stream.h>
+#include <rose/stdint.h>
 
 #define COLS 80
 #define ROWS 25
@@ -82,4 +83,49 @@ console_printf(const char *fmt, ...)
     va_end(args);
 
     return chars_written;
+}
+
+struct registers {
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+};
+
+void
+_console_dump_registers(struct registers *regs)
+{
+    uint32_t eflags;
+    uint32_t cr0;
+    uint32_t cr2;
+    uint32_t cr3;
+    uint32_t cr4;
+
+    asm("PUSHFD;"
+        "MOV %0, [ESP];"
+        "MOV %1, CR0;"
+        "MOV %2, CR2;"
+        "MOV %3, CR3;"
+        "MOV %4, CR4;"
+        "ADD ESP, 4;"
+       : "=r"(eflags), "=r"(cr0), "=r"(cr2), "=r"(cr3), "=r"(cr4)
+       );
+
+    console_printf("EAX:    0x%x\n", regs->eax);
+    console_printf("EBX:    0x%x\n", regs->ebx);
+    console_printf("ECX:    0x%x\n", regs->ecx);
+    console_printf("EDX:    0x%x\n", regs->edx);
+    console_printf("ESP:    0x%x\n", regs->esp);
+    console_printf("EBP:    0x%x\n", regs->ebp);
+    console_printf("ESI:    0x%x\n", regs->esi);
+    console_printf("EDI:    0x%x\n", regs->edi);
+    console_printf("EFLAGS: 0x%x\n", eflags);
+    console_printf("CR0:    0x%x\n", cr0);
+    console_printf("CR2:    0x%x\n", cr2);
+    console_printf("CR3:    0x%x\n", cr3);
+    console_printf("CR4:    0x%x\n", cr4);
 }
