@@ -47,7 +47,7 @@ panic(const char *fmt, ...)
     console_reset();
 
     if(fmt) {
-        console_printf("Kernel panic:");
+        console_printf("Kernel panic: ");
         console_vprintf(fmt, args);
         console_printf("\n");
     } else {
