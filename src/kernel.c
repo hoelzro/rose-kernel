@@ -28,6 +28,7 @@
 #include <rose/stdint.h>
 #include <rose/string.h>
 #include <rose/memory.h>
+#include <rose/multiboot.h>
 
 #define CR0_MP (1<<1)
 #define CR0_NE (1<<5)
@@ -82,7 +83,7 @@ panic(const char *fmt, ...)
 }
 
 void
-kmain(void)
+kmain(struct multiboot_info *mboot)
 {
     interrupts_disable();
     fpu_init();
