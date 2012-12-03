@@ -21,6 +21,7 @@
  */
 
 #include <rose/memory.h>
+#include <rose/multiboot.h>
 #include <rose/stdint.h>
 #include <rose/string.h>
 
@@ -248,4 +249,63 @@ memory_init_paging(void *kernel_start, void *kernel_end)
     }
 
     _cr3_set(&kernel_pages);
+}
+
+struct free_pages {
+    int num_pages;
+    struct free_pages *next;
+};
+
+struct free_pages *free_list = NULL;
+
+/* Optimization opportunities:
+ *
+ *  - We can reuse addresses starting at 0x0
+ *  - We can use non-aligned addresses to store stuff (as long as the page
+ *    that contains it is owned by the kernel)
+ */
+void
+memory_detect(void *kernel_end, struct multiboot_info *mboot)
+{
+    struct multiboot_memory *chunk = mboot->mmap_addr;
+    struct multiboot_memory *end   = MBOOT_MMAP_END(mboot);
+    struct free_pages **previous   = &free_list;
+
+    if(! (mboot->flags & MBOOT_MEMORY_MAP)) {
+        /* XXX uh-oh! */
+        return;
+    }
+
+    for(; chunk < end; chunk = MBOOT_MMAP_NEXT(chunk)) {
+        struct free_pages *pages;
+        char *start_address;
+        char *end_address;
+
+        if(chunk->type != 1) { /* free (XXX magic number!) */
+            continue;
+        }
+        if(chunk->base_addr == 0) {
+            continue;
+        }
+
+        start_address = (char *) (uint32_t) chunk->base_addr;
+        end_address   = (char *) (uint32_t) (chunk->base_addr + chunk->length);
+
+        if(((void *) start_address) < kernel_end) {
+            start_address = kernel_end;
+        }
+
+        end_address = MEMORY_PAGE_ALIGN(end_address);
+        if(! MEMORY_IS_PAGE_ALIGNED(start_address)) {
+            start_address  = MEMORY_PAGE_ALIGN(start_address);
+            start_address += PAGE_SIZE;
+        }
+
+        pages = (struct free_pages *) start_address;
+
+        *previous        = pages;
+        pages->num_pages = (end_address - start_address) / PAGE_SIZE;
+        pages->next      = NULL;
+        previous         = &(pages->next);
+    }
 }
