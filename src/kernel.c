@@ -92,6 +92,7 @@ kmain(struct multiboot_info *mboot)
     interrupts_init();
     protected_mode_start();
     serial_init();
+    memory_detect(end, mboot);
     memory_init_paging(0, end);
     /* XXX turn on interrupts? */
 
