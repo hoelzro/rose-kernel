@@ -64,4 +64,10 @@ struct multiboot_info {
     struct multiboot_memory *mmap_addr;
 };
 
+#define MBOOT_MMAP_END(mboot)\
+    ((struct multiboot_memory *) (((char *) mboot->mmap_addr) + mboot->mmap_length))
+
+#define MBOOT_MMAP_NEXT(mem)\
+    ((struct multiboot_memory *) (((char *) mem) + mem->size + 4))
+
 #endif
