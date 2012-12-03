@@ -26,4 +26,10 @@
 void memory_init_gdt(void);
 void memory_init_paging(void *kernel_start, void *kernel_end);
 
+#define MEMORY_PAGE_ALIGN(addr)\
+    ((void *) (((long)addr) & ~0xFFF))
+
+#define MEMORY_IS_PAGE_ALIGNED(addr)\
+    ((((long)addr) & 0xFFF) == 0)
+
 #endif
