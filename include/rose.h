@@ -23,6 +23,7 @@
 #ifndef ROSE_H
 #define ROSE_H
 
+/* XXX include file/line in message? */
 void panic(const char *fmt, ...);
 
 /* XXX only define this macro if we're compiling in "safe" mode */
