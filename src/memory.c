@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <rose.h>
 #include <rose/memory.h>
 #include <rose/multiboot.h>
 #include <rose/stdint.h>
@@ -213,6 +214,13 @@ memory_init_gdt(void)
     _gdt_set(&gdt_ptr);
 }
 
+struct free_pages {
+    int num_pages;
+    struct free_pages *next;
+};
+
+struct free_pages *free_list = NULL;
+
 void
 memory_init_paging(void *kernel_start, void *kernel_end)
 {
@@ -250,13 +258,6 @@ memory_init_paging(void *kernel_start, void *kernel_end)
 
     _cr3_set(&kernel_pages);
 }
-
-struct free_pages {
-    int num_pages;
-    struct free_pages *next;
-};
-
-struct free_pages *free_list = NULL;
 
 /* Optimization opportunities:
  *
@@ -307,5 +308,86 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
         pages->num_pages = (end_address - start_address) / PAGE_SIZE;
         pages->next      = NULL;
         previous         = &(pages->next);
+    }
+}
+
+void *
+memory_allocate_page(void)
+{
+    struct free_pages *pages = free_list;
+    struct free_pages *next;
+
+    if(! pages) {
+        /* Freak out! (at least until swapping is implemented) */
+        panic("Out of memory");
+    }
+
+    if(pages->num_pages == 1) {
+        next = pages->next;
+    } else {
+        next = (struct free_pages *) (((char *) pages) + PAGE_SIZE);
+        memcpy(next, pages, sizeof(struct free_pages));
+        next->num_pages--;
+    }
+
+    free_list = next;
+
+    return (void *) pages;
+}
+
+static int
+free_page_blocks_are_adjacent(struct free_pages *first, struct free_pages *second)
+{
+    if(first > second) {
+        struct free_pages *tmp = first;
+        first  = second;
+        second = tmp;
+    }
+
+    return ((char *) first) + first->num_pages * PAGE_SIZE == ((char *) second);
+}
+
+static void
+free_page_blocks_merge(struct free_pages *first, struct free_pages *second)
+{
+    ROSE_ASSERT(first < second);
+    ROSE_ASSERT(free_page_blocks_are_adjacent(first, second));
+    ROSE_ASSERT(first->next == second);
+
+    first->num_pages += second->num_pages;
+    first->next       = second->next;
+}
+
+void
+memory_free_page(void *page)
+{
+    /* XXX Is NULL an ok value for this? */
+    struct free_pages *previous_node = NULL;
+    struct free_pages *next_node     = free_list;
+    struct free_pages *new_node      = (void *) page;
+
+    if(! MEMORY_IS_PAGE_ALIGNED(page)) {
+        panic("Address %p is not page-aligned!", page);
+    }
+
+    while(next_node && next_node < new_node) {
+        previous_node = next_node;
+        next_node     = next_node->next;
+    }
+
+    new_node->num_pages = 1;
+    new_node->next      = next_node;
+
+    if(previous_node) {
+        previous_node->next = new_node;
+    } else {
+        free_list = new_node;
+    }
+
+    if(next_node && free_page_blocks_are_adjacent(new_node, next_node)) {
+        free_page_blocks_merge(new_node, next_node);
+    }
+    if(previous_node && free_page_blocks_are_adjacent(previous_node, new_node)) {
+        free_page_blocks_merge(previous_node, new_node);
     }
 }

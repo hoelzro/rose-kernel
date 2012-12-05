@@ -28,6 +28,8 @@ struct multiboot_info;
 void memory_init_gdt(void);
 void memory_init_paging(void *kernel_start, void *kernel_end);
 void memory_detect(void *kernel_end, struct multiboot_info *mboot);
+void *memory_allocate_page(void);
+void memory_free_page(void *page);
 
 #define MEMORY_PAGE_ALIGN(addr)\
     ((void *) (((long)addr) & ~0xFFF))
