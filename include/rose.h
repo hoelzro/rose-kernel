@@ -25,4 +25,10 @@
 
 void panic(const char *fmt, ...);
 
+/* XXX only define this macro if we're compiling in "safe" mode */
+#define ROSE_ASSERT(cond)\
+    if(!(cond)) {\
+        panic("condition '%s' failed", #cond);\
+    }
+
 #endif
