@@ -31,6 +31,9 @@ void memory_detect(void *kernel_end, struct multiboot_info *mboot);
 void *memory_allocate_page(void);
 void memory_free_page(void *page);
 
+#define MEMORY_PAGE_SIZE (1 << 12)
+
+/* XXX define these in terms of MEMORY_PAGE_SIZE */
 #define MEMORY_PAGE_ALIGN(addr)\
     ((void *) (((long)addr) & ~0xFFF))
 
