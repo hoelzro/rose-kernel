@@ -46,7 +46,6 @@
 
 #define PAGE_SIZE_4KB 0
 #define PAGE_SIZE_4MB 1
-#define PAGE_SIZE     4096
 
 struct gdt_entry {
     uint16_t limit_lower;
@@ -85,7 +84,7 @@ struct page_table_entry {
 } __attribute__((packed));
 
 struct page_table {
-    struct page_table_entry entries[PAGE_SIZE / sizeof(struct page_table_entry)];
+    struct page_table_entry entries[MEMORY_PAGE_SIZE / sizeof(struct page_table_entry)];
 } __attribute__((packed));
 
 struct page_directory_entry {
@@ -102,13 +101,13 @@ struct page_directory_entry {
 } __attribute__((packed));
 
 struct page_directory {
-    struct page_directory_entry entries[PAGE_SIZE / sizeof(struct page_directory_entry)];
+    struct page_directory_entry entries[MEMORY_PAGE_SIZE / sizeof(struct page_directory_entry)];
 } __attribute__((packed));
 
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
-struct page_directory kernel_pages __attribute__((aligned (PAGE_SIZE)));
+struct page_directory kernel_pages __attribute__((aligned (MEMORY_PAGE_SIZE)));
 
 #ifdef ROSE_TESTING
 extern void _gdt_set(struct gdt_pointer *gdt);
@@ -228,13 +227,13 @@ memory_init_paging(void *kernel_start, void *kernel_end)
     uint32_t page        = (uint32_t) kernel_start; /* XXX we're taking for granted that kernel_start is page-aligned */
 
     /* find the next page-aligned address after end */
-    ok_to_alloc &= ~(PAGE_SIZE - 1);
-    ok_to_alloc += PAGE_SIZE;
+    ok_to_alloc &= ~(MEMORY_PAGE_SIZE - 1);
+    ok_to_alloc += MEMORY_PAGE_SIZE;
 
     memset(&kernel_pages, 0, sizeof(kernel_pages));
     /* we map an extra page here in case we fill up a page table with kernel
      * memory entirely; that way we have room for more tables later. */
-    for(; page < (uint32_t) ok_to_alloc + PAGE_SIZE; page += PAGE_SIZE) {
+    for(; page < (uint32_t) ok_to_alloc + MEMORY_PAGE_SIZE; page += MEMORY_PAGE_SIZE) {
         struct page_table *table;
         uint16_t directory_entry_index;
         uint16_t table_entry_index;
@@ -299,13 +298,13 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
         end_address = MEMORY_PAGE_ALIGN(end_address);
         if(! MEMORY_IS_PAGE_ALIGNED(start_address)) {
             start_address  = MEMORY_PAGE_ALIGN(start_address);
-            start_address += PAGE_SIZE;
+            start_address += MEMORY_PAGE_SIZE;
         }
 
         pages = (struct free_pages *) start_address;
 
         *previous        = pages;
-        pages->num_pages = (end_address - start_address) / PAGE_SIZE;
+        pages->num_pages = (end_address - start_address) / MEMORY_PAGE_SIZE;
         pages->next      = NULL;
         previous         = &(pages->next);
     }
@@ -325,7 +324,7 @@ memory_allocate_page(void)
     if(pages->num_pages == 1) {
         next = pages->next;
     } else {
-        next = (struct free_pages *) (((char *) pages) + PAGE_SIZE);
+        next = (struct free_pages *) (((char *) pages) + MEMORY_PAGE_SIZE);
         memcpy(next, pages, sizeof(struct free_pages));
         next->num_pages--;
     }
@@ -344,7 +343,7 @@ free_page_blocks_are_adjacent(struct free_pages *first, struct free_pages *secon
         second = tmp;
     }
 
-    return ((char *) first) + first->num_pages * PAGE_SIZE == ((char *) second);
+    return ((char *) first) + first->num_pages * MEMORY_PAGE_SIZE == ((char *) second);
 }
 
 static void
