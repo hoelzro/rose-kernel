@@ -93,7 +93,7 @@ kmain(struct multiboot_info *mboot)
     protected_mode_start();
     serial_init();
     memory_detect(end, mboot);
-    memory_init_paging(0, end);
+    memory_init_paging((void *) MEMORY_PAGE_SIZE, end);
     /* XXX turn on interrupts? */
 
     console_write_string("Hello from rOSe (in protected mode!)\n");
