@@ -220,39 +220,46 @@ struct free_pages {
 
 struct free_pages *free_list = NULL;
 
+static void
+identity_map(void *addr)
+{
+    uint32_t page = (uint32_t) addr;
+    struct page_table *table;
+    uint16_t directory_entry_index;
+    uint16_t table_entry_index;
+    int has_allocated_page = 0;
+
+    directory_entry_index = page >> 22;
+    table_entry_index     = (page >> 12) & 0x03ff;
+
+    if(! kernel_pages.entries[directory_entry_index].present) {
+        kernel_pages.entries[directory_entry_index].present    = 1;
+        kernel_pages.entries[directory_entry_index].is_rw      = 1;
+        kernel_pages.entries[directory_entry_index].page_table = ((uint32_t) memory_allocate_page()) >> 12; /* XXX encapsulate */
+        has_allocated_page = 1;
+    }
+    table = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
+
+    table->entries[table_entry_index].present = 1;
+    table->entries[table_entry_index].is_rw   = 1;
+    table->entries[table_entry_index].page    = page >> 12;
+
+    if(has_allocated_page) {
+        identity_map(table);
+    }
+}
+
 void
 memory_init_paging(void *kernel_start, void *kernel_end)
 {
-    uint32_t ok_to_alloc = (uint32_t) kernel_end;
-    uint32_t page        = (uint32_t) kernel_start; /* XXX we're taking for granted that kernel_start is page-aligned */
+    void *alloc_end;
+    void *page;
 
-    /* find the next page-aligned address after end */
-    ok_to_alloc &= ~(MEMORY_PAGE_SIZE - 1);
-    ok_to_alloc += MEMORY_PAGE_SIZE;
+    alloc_end = MEMORY_IS_PAGE_ALIGNED(kernel_end) ? kernel_end : MEMORY_PAGE_ALIGN(kernel_end) + MEMORY_PAGE_SIZE;
 
     memset(&kernel_pages, 0, sizeof(kernel_pages));
-    /* we map an extra page here in case we fill up a page table with kernel
-     * memory entirely; that way we have room for more tables later. */
-    for(; page < (uint32_t) ok_to_alloc + MEMORY_PAGE_SIZE; page += MEMORY_PAGE_SIZE) {
-        struct page_table *table;
-        uint16_t directory_entry_index;
-        uint16_t table_entry_index;
-
-        directory_entry_index = page >> 22;
-        table_entry_index     = (page >> 12) & 0x03ff;
-
-        if(! kernel_pages.entries[directory_entry_index].present) {
-            kernel_pages.entries[directory_entry_index].present    = 1;
-            kernel_pages.entries[directory_entry_index].is_rw      = 1;
-            kernel_pages.entries[directory_entry_index].page_table = ok_to_alloc >> 12; /* XXX encapsulate */
-
-            ok_to_alloc += sizeof(struct page_table);
-        }
-        table = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
-
-        table->entries[table_entry_index].present = 1;
-        table->entries[table_entry_index].is_rw   = 1;
-        table->entries[table_entry_index].page    = page >> 12;
+    for(page = MEMORY_PAGE_ALIGN(kernel_start); page < alloc_end; page += MEMORY_PAGE_SIZE) {
+        identity_map(page);
     }
 
     _cr3_set(&kernel_pages);
