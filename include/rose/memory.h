@@ -30,6 +30,7 @@ void memory_init_paging(void *kernel_start, void *kernel_end);
 void memory_detect(void *kernel_end, struct multiboot_info *mboot);
 void *memory_allocate_page(void);
 void memory_free_page(void *page);
+int memory_test_paged_address(void *addr);
 
 #define MEMORY_PAGE_SIZE (1 << 12)
 

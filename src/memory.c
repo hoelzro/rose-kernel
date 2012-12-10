@@ -397,3 +397,21 @@ memory_free_page(void *page)
         free_page_blocks_merge(previous_node, new_node);
     }
 }
+
+int
+memory_test_paged_address(void *addr)
+{
+    uint16_t directory_entry_index;
+    uint16_t table_entry_index;
+    struct page_table *pt;
+
+    directory_entry_index = ((uint32_t) addr) >> 22;
+    table_entry_index     = (((uint32_t) addr) >> 12) & 0x03ff;
+
+    if(! kernel_pages.entries[directory_entry_index].present) {
+        return 0;
+    }
+    pt = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
+
+    return pt->entries[table_entry_index].present;
+}
