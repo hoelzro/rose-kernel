@@ -285,6 +285,8 @@ memory_init_paging(void *kernel_start, void *kernel_end)
 {
     void *alloc_end;
     void *page;
+    struct free_pages *pages;
+
     /* we need to do this by hand since our normal allocation routines
      * do some funky stuff with pages */
     dummy_page_table = (struct page_table *) free_list;
@@ -303,6 +305,13 @@ memory_init_paging(void *kernel_start, void *kernel_end)
     memset(&kernel_pages, 0, sizeof(kernel_pages));
     for(page = MEMORY_PAGE_ALIGN(kernel_start); page < alloc_end; page += MEMORY_PAGE_SIZE) {
         identity_map(page);
+    }
+    identity_map(dummy_page_table);
+
+    pages = free_list;
+    while(pages) {
+        identity_map(pages); /* XXX this can alter the free list */
+        pages = pages->next;
     }
 
     _cr3_set(&kernel_pages);
