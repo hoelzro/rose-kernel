@@ -40,5 +40,6 @@ int memory_test_paged_address(void *addr);
 #define MEMORY_IS_PAGE_ALIGNED(addr)\
     ((((long)addr) & (MEMORY_PAGE_SIZE - 1)) == 0)
 
+#define MEMORY_INVALID_ADDR ((void *) -1)
 
 #endif
