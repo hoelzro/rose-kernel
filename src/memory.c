@@ -108,6 +108,7 @@ struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
 struct page_directory kernel_pages __attribute__((aligned (MEMORY_PAGE_SIZE)));
+static struct page_table *dummy_page_table;
 
 #ifdef ROSE_TESTING
 extern void _gdt_set(struct gdt_pointer *gdt);
@@ -235,6 +236,13 @@ identity_map(void *addr)
     if(! kernel_pages.entries[directory_entry_index].present) {
         kernel_pages.entries[directory_entry_index].present    = 1;
         kernel_pages.entries[directory_entry_index].is_rw      = 1;
+        /* we do this because memory_allocate_page() can return a page
+         * that would end up in the same page directory as the page
+         * we are mapping.  If that's the case, then we need a temporary
+         * dummy page to store the entry so we can work on it while allocating
+         * the real page table.  Afterwards, the allocated page is identity
+         * mapped correctly. */
+        kernel_pages.entries[directory_entry_index].page_table = ((uint32_t) dummy_page_table) >> 12;
 
         table = memory_allocate_page();
         memset(table, 0, sizeof(struct page_table));
@@ -258,6 +266,18 @@ memory_init_paging(void *kernel_start, void *kernel_end)
 {
     void *alloc_end;
     void *page;
+    /* we need to do this by hand since our normal allocation routines
+     * do some funky stuff with pages */
+    dummy_page_table = (struct page_table *) free_list;
+    if(free_list->num_pages == 1) {
+        free_list = free_list->next;
+    } else {
+        struct free_pages *new_free_list = (struct free_pages *) (((char *) free_list) + MEMORY_PAGE_SIZE);
+
+        memcpy(new_free_list, free_list, sizeof(struct free_pages));
+        free_list = new_free_list;
+        free_list->num_pages--;
+    }
 
     alloc_end = MEMORY_IS_PAGE_ALIGNED(kernel_end) ? kernel_end : MEMORY_PAGE_ALIGN(kernel_end) + MEMORY_PAGE_SIZE;
 
