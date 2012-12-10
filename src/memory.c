@@ -261,6 +261,25 @@ identity_map(void *addr)
     }
 }
 
+static void
+remove_identity_map(void *addr)
+{
+    uint16_t directory_entry_index;
+    uint16_t table_entry_index;
+    struct page_table *pt;
+
+    /* XXX we should really abstract this away */
+    directory_entry_index = ((uint32_t) addr) >> 22;
+    table_entry_index     = (((uint32_t) addr) >> 12) & 0x03ff;
+
+    pt = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
+
+    pt->entries[table_entry_index].present = 0;
+
+    /* XXX if a page table has no present entries, we should probably return
+     *     it to the memory pool */
+}
+
 void
 memory_init_paging(void *kernel_start, void *kernel_end)
 {
@@ -356,9 +375,13 @@ memory_allocate_page(void)
         next = pages->next;
     } else {
         next = (struct free_pages *) (((char *) pages) + MEMORY_PAGE_SIZE);
+        identity_map(next); /* XXX is this ok? */
         memcpy(next, pages, sizeof(struct free_pages));
         next->num_pages--;
     }
+    /* We don't remove the identity mapping for the page we're returning, because
+     * we assume that the kernel is going to use it.  This may change in the future!
+     */
 
     free_list = next;
 
@@ -386,6 +409,8 @@ free_page_blocks_merge(struct free_pages *first, struct free_pages *second)
 
     first->num_pages += second->num_pages;
     first->next       = second->next;
+
+    remove_identity_map(second); /* XXX is this ok? */
 }
 
 void
@@ -400,6 +425,8 @@ memory_free_page(void *page)
         panic("Address %p is not page-aligned!", page);
     }
 
+    /* We assume that the incoming page to be freed is identity
+     * mapped; this may change! */
     while(next_node && next_node < new_node) {
         previous_node = next_node;
         next_node     = next_node->next;
