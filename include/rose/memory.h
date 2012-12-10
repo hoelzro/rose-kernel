@@ -34,11 +34,11 @@ int memory_test_paged_address(void *addr);
 
 #define MEMORY_PAGE_SIZE (1 << 12)
 
-/* XXX define these in terms of MEMORY_PAGE_SIZE */
 #define MEMORY_PAGE_ALIGN(addr)\
-    ((void *) (((long)addr) & ~0xFFF))
+    ((void *) (((long)addr) & ~(MEMORY_PAGE_SIZE - 1)))
 
 #define MEMORY_IS_PAGE_ALIGNED(addr)\
-    ((((long)addr) & 0xFFF) == 0)
+    ((((long)addr) & (MEMORY_PAGE_SIZE - 1)) == 0)
+
 
 #endif
