@@ -235,7 +235,11 @@ identity_map(void *addr)
     if(! kernel_pages.entries[directory_entry_index].present) {
         kernel_pages.entries[directory_entry_index].present    = 1;
         kernel_pages.entries[directory_entry_index].is_rw      = 1;
-        kernel_pages.entries[directory_entry_index].page_table = ((uint32_t) memory_allocate_page()) >> 12; /* XXX encapsulate */
+
+        table = memory_allocate_page();
+        memset(table, 0, sizeof(struct page_table));
+
+        kernel_pages.entries[directory_entry_index].page_table = ((uint32_t) table) >> 12; /* XXX encapsulate */
         has_allocated_page = 1;
     }
     table = (struct page_table *) (kernel_pages.entries[directory_entry_index].page_table << 12);
