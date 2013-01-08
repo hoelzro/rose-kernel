@@ -103,12 +103,14 @@ scheduler_yield:
     CALL _get_current_task
 
     MOV EBX, EAX
-    ; XXX can we conditionally compile this out?
+%if STRUCT_TASK_SCHEDULER_OFFSET != 0
     ADD EBX, STRUCT_TASK_SCHEDULER_OFFSET
+%endif
     MOV EBX, [EBX]
 
-    ; XXX can we conditionally compile this out?
+%if STRUCT_SCHEDULER_KERNEL_TASK_OFFSET != 0
     ADD EBX, STRUCT_SCHEDULER_KERNEL_TASK_OFFSET
+%endif
 
     PUSH EBX
     PUSH EAX
