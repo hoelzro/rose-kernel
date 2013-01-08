@@ -23,6 +23,7 @@
 #include <rose/capabilities.h>
 #include <rose/console.h>
 #include <rose/interrupts.h>
+#include <rose/scheduler.h>
 #include <rose/screen.h>
 #include <rose/serial.h>
 #include <rose/stdint.h>
@@ -82,6 +83,32 @@ panic(const char *fmt, ...)
     asm("HLT");
 }
 
+static void
+proc1(void)
+{
+    int i;
+
+    for(i = 0; i < 100; i++) {
+        serial_printf("Hello from %s: %d\n", __FUNCTION__, i);
+        if(i % 10 == 0) {
+            scheduler_yield();
+        }
+    }
+}
+
+static void
+proc2(void)
+{
+    int i;
+
+    for(i = 0; i < 100; i++) {
+        serial_printf("Hello from %s: %d\n", __FUNCTION__, i);
+        if(i % 20 == 0) {
+            scheduler_yield();
+        }
+    }
+}
+
 void
 kmain(struct multiboot_info *mboot)
 {
@@ -94,7 +121,14 @@ kmain(struct multiboot_info *mboot)
     serial_init();
     memory_detect(end, mboot);
     memory_init_paging((void *) MEMORY_PAGE_SIZE, end);
+    scheduler_init();
     /* XXX turn on interrupts? */
 
     console_write_string("Hello from rOSe (in protected mode!)\n");
+
+    scheduler_add_process(proc1);
+    scheduler_add_process(proc2);
+
+    scheduler_run();
+    console_write_string("Done.");
 }
