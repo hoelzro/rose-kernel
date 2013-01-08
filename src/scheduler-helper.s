@@ -1,12 +1,15 @@
 %include "struct-offsets.s"
 
 ; XXX should we include this ↓ in the generated file?
-%define STRUCT_TASK_REGISTERS_OFFSET 0x0C
-%define STRUCT_TASK_STACK_OFFSET     0x2C
+%define STRUCT_SCHEDULER_KERNEL_TASK_OFFSET 0x00
+%define STRUCT_TASK_SCHEDULER_OFFSET        0x00
+%define STRUCT_TASK_REGISTERS_OFFSET        0x0C
+%define STRUCT_TASK_STACK_OFFSET            0x2C
 
 global _resume_task
 global _dealloc_and_jump_to_task
 global _get_current_task
+global scheduler_yield
 
 extern memory_free_page
 
@@ -89,4 +92,28 @@ _dealloc_and_jump_to_task:
 _get_current_task:
     MOV EAX, ESP
     AND EAX, 0xFFFFF000
+    RET
+
+scheduler_yield:
+    PUSH EAX
+    PUSH EBX
+
+    CALL _get_current_task
+
+    MOV EBX, EAX
+    ; XXX can we conditionally compile this out?
+    ADD EBX, STRUCT_TASK_SCHEDULER_OFFSET
+    MOV EBX, [EBX]
+
+    ; XXX can we conditionally compile this out?
+    ADD EBX, STRUCT_SCHEDULER_KERNEL_TASK_OFFSET
+
+    PUSH EBX
+    PUSH EAX
+
+    MOV EBX, [ESP + 8]
+    MOV EAX, [ESP + 12]
+    CALL _resume_task
+    ADD ESP, 16
+
     RET

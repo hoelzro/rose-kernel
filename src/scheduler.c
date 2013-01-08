@@ -124,12 +124,3 @@ scheduler_run(void)
         }
     }
 }
-
-void
-scheduler_yield(void)
-{
-    struct task *current        = _get_current_task();
-    struct scheduler *scheduler = current->scheduler;
-
-    _resume_task(current, &(scheduler->kernel_task));
-}
