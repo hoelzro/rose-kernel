@@ -21,20 +21,10 @@
  */
 
 #include <rose/memory.h>
+#include <rose/registers.h>
 #include <rose/scheduler.h>
 #include <rose/stdint.h>
 #include <rose/string.h>
-
-struct registers {
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
-} __attribute__((packed));
 
 struct task {
     struct task *next;
