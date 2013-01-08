@@ -1,8 +1,8 @@
 %include "struct-offsets.s"
 
 ; XXX should we include this ↓ in the generated file?
-%define STRUCT_TASK_REGISTERS_OFFSET 0x08
-%define STRUCT_TASK_STACK_OFFSET     0x28
+%define STRUCT_TASK_REGISTERS_OFFSET 0x0C
+%define STRUCT_TASK_STACK_OFFSET     0x2C
 
 global _resume_task
 global _dealloc_and_jump_to_task
