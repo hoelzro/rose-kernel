@@ -41,16 +41,15 @@ struct scheduler {
     struct task *next_task;
 } __attribute__((packed));
 
-static struct scheduler global_scheduler;
-
+extern struct task *_get_current_task(void);
 extern void _resume_task(struct task *current, struct task *task);
 extern void _dealloc_and_jump_to_task(struct task *current, struct task *kernel);
 
 static void
 _cleanup_task(void)
 {
-    struct scheduler *scheduler = &global_scheduler;
-    struct task *current        = scheduler->next_task;
+    struct task *current        = _get_current_task();
+    struct scheduler *scheduler = current->scheduler;
 
     if(current == current->next) {
         scheduler->next_task = NULL;
@@ -69,6 +68,8 @@ _push_to_task_stack(struct task *task, uint32_t value)
     task->registers.esp -= 4;
     *((uint32_t *) task->registers.esp) = value;
 }
+
+static struct scheduler global_scheduler;
 
 void
 scheduler_init(void)
@@ -125,5 +126,8 @@ scheduler_run(void)
 void
 scheduler_yield(void)
 {
-    _resume_task(global_scheduler.next_task, &global_scheduler.kernel_task);
+    struct task *current        = _get_current_task();
+    struct scheduler *scheduler = current->scheduler;
+
+    _resume_task(current, &(scheduler->kernel_task));
 }
