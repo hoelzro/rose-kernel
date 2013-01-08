@@ -1,2 +1,4 @@
 *.bin
 *.o
+src/struct-offsets.s
+tools/gen-struct-macros
