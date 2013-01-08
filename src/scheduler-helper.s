@@ -5,6 +5,7 @@
 %define STRUCT_TASK_SCHEDULER_OFFSET        0x00
 %define STRUCT_TASK_REGISTERS_OFFSET        0x0C
 %define STRUCT_TASK_STACK_OFFSET            0x2C
+%define STACK_SIZE                          0x1000
 
 global _resume_task
 global _dealloc_and_jump_to_task
@@ -90,10 +91,9 @@ _dealloc_and_jump_to_task:
     ADD ESP, 4
     RET
 
-; XXX this works as long as we have a single page for the task
 _get_current_task:
     MOV EAX, ESP
-    AND EAX, 0xFFFFF000
+    AND EAX, ~(STACK_SIZE-1)
     RET
 
 scheduler_yield:
