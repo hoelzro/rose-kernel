@@ -54,9 +54,10 @@ _resume_task:
     MOV EDX, [EAX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EDX_OFFSET]
     MOV ECX, [EAX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_ECX_OFFSET]
     ;MOV SS,  [EAX + STRUCT_TASK_STACK_OFFSET] ; do this after we integrate this code into the kernel
-    ; EAX is handled by the stack
+    MOV EAX, [EAX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EAX_OFFSET] ; must occur last
 
-    POP EAX
+    ADD ESP, 4
+
     RET ; pops EIP and resumes execution of task
 
 ; struct task *kernel_task
@@ -77,15 +78,16 @@ _dealloc_and_jump_to_task:
     MOV ESP, [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_ESP_OFFSET]
     MOV EDX, [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EDX_OFFSET]
     MOV ECX, [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_ECX_OFFSET]
-    MOV EBX, [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EBX_OFFSET] ; must happen last
+    PUSH DWORD [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EAX_OFFSET] ; we need to do it this way
     ;MOV SS,  [EBX + STRUCT_TASK_STACK_OFFSET] ; do this after we integrate this code into the kernel
-    ; EAX is handled by the stack
+    MOV EBX, [EBX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EBX_OFFSET] ; must happen last
 
     PUSH EAX
     CALL memory_free_page
     ADD ESP, 4
 
     POP EAX
+    ADD ESP, 4
     RET
 
 ; XXX this works as long as we have a single page for the task
