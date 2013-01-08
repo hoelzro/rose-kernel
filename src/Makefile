@@ -9,9 +9,13 @@ CFLAGS+=$(CFLAG_WARNINGS)
 endif
 
 KERNEL_PIECES=$(shell ls *.c *.s | sed -e 's/[cs]$$/o/')
+KERNEL_PIECES+=struct-offsets.o
 
 kernel.bin: $(KERNEL_PIECES)
 	ld -T linker.ld -o $@ -m elf_i386 $^
+
+struct-offsets.s: ../tools/gen-struct-macros ../include/rose/registers.h
+	$< > $@
 
 %.o: %.s
 	nasm $(ASFLAGS) -o $@ $<
