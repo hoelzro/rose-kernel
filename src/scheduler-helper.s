@@ -6,6 +6,7 @@
 
 global _resume_task
 global _dealloc_and_jump_to_task
+global _get_current_task
 
 extern memory_free_page
 
@@ -82,4 +83,10 @@ _dealloc_and_jump_to_task:
     ADD ESP, 4
 
     POP EAX
+    RET
+
+; XXX this works as long as we have a single page for the task
+_get_current_task:
+    MOV EAX, ESP
+    AND EAX, 0xFFFFF000
     RET
