@@ -26,6 +26,8 @@
 #include <rose/stdint.h>
 #include <rose/string.h>
 
+#define STACK_SIZE MEMORY_PAGE_SIZE
+
 struct scheduler;
 
 struct task {
@@ -84,10 +86,10 @@ scheduler_add_process(void (*code)(void))
     struct task *task;
 
     task = memory_allocate_page(); // a single page is enough (for now)
-    memset(task, 0, MEMORY_PAGE_SIZE);
+    memset(task, 0, STACK_SIZE);
 
     task->scheduler     = scheduler;
-    task->registers.esp = ((uint32_t) task) + MEMORY_PAGE_SIZE;
+    task->registers.esp = ((uint32_t) task) + STACK_SIZE;
 
     _push_to_task_stack(task, (uint32_t) _cleanup_task); /* set up exit trampoline */
     _push_to_task_stack(task, (uint32_t) code);
