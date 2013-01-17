@@ -108,6 +108,9 @@ stream_vprintf(struct stream *stream, const char *fmt, va_list args)
                 }
                 case 's': {
                     const char *value = va_arg(args, const char *);
+                    if(!value) {
+                        value = "(nil)";
+                    }
                     chars_written += stream_write_string(stream, value);
                     break;
                 }
