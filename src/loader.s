@@ -51,6 +51,7 @@ EXTERN kmain
 
 start:
     MOV ESP, stack
+    ; XXX I should probably check that EAX == 0x2BADB002 here
     PUSH EBX
     CALL kmain
 _hang:

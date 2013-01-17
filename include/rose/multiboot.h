@@ -69,6 +69,8 @@ struct multiboot_info {
     uint32_t mmap_length;
 
     struct multiboot_memory *mmap_addr;
+
+    /* XXX fill in other fields in the multiboot struct */
 };
 
 #define MBOOT_MMAP_END(mboot)\
