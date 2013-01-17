@@ -47,6 +47,13 @@ struct multiboot_memory {
     uint32_t type;
 };
 
+struct multiboot_module {
+    void *mod_start;
+    void *mod_end;
+    char *string;
+    uint32_t reserved;
+};
+
 struct multiboot_info {
     uint32_t flags;
     uint32_t mem_lower;
@@ -54,7 +61,7 @@ struct multiboot_info {
     uint32_t boot_device;
     void    *cmdline;
     uint32_t mods_count;
-    void    *mods_addr; /* XXX fill in later */
+    struct multiboot_module *mods_addr;
     uint32_t syms1; /* XXX fill this in with a real struct later */
     uint32_t syms2;
     uint32_t syms3;
