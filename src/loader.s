@@ -25,6 +25,7 @@ MBOOT_MAGIC         EQU 0x1BADB002
 MBOOT_FLAGS         EQU MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
 MBOOT_CHECKSUM      EQU -(MBOOT_MAGIC + MBOOT_FLAGS)
 CR0_PE              EQU 1<<0
+CR0_PG              EQU 1<<31
 SEGMENT_KERNEL_DATA EQU 0x10
 SEGMENT_KERNEL_CODE EQU 0x08
 
@@ -35,6 +36,9 @@ EXTERN code
 EXTERN bss
 EXTERN end
 EXTERN stack
+GLOBAL start
+
+SECTION .establish_higher_half
 
 mboot:
     DD MBOOT_MAGIC
@@ -46,10 +50,70 @@ mboot:
     DD end
     DD start
 
-GLOBAL start
+start:
+    CLI
+
+    ; preserve EAX and EBX; we'll need them in higher_half_start
+    LGDT [fake_gdt_ptr]
+    MOV ECX, SEGMENT_KERNEL_DATA
+    MOV SS, ECX
+    MOV DS, ECX
+    MOV ES, ECX
+    MOV FS, ECX
+    MOV GS, ECX
+
+    MOV ECX, kernel_page_table
+    MOV EDX, 0x00000003 ; XXX magic number!
+map_kernel_loop:
+    MOV [ECX], EDX
+    ADD ECX, 4
+    ADD EDX, 0x1000
+    CMP EDX, (end - 0xC0000000) ; XXX magic number
+    JB map_kernel_loop
+
+    MOV ECX, kernel_page_directory
+    MOV EDX, kernel_page_table
+    AND EDX, 0xFFFFF000
+    OR  EDX, 0x003
+    MOV [ECX + (768 * 4)], EDX
+
+    MOV EDX, kernel_page_table
+    AND EDX, 0xFFFFF000
+    OR  EDX, 0x003
+    MOV [ECX], EDX
+
+    AND ECX, 0xFFFFF000
+    MOV CR3, ECX
+
+    MOV ECX, CR0
+    OR ECX, CR0_PE | CR0_PG
+    MOV CR0, ECX
+
+    JMP SEGMENT_KERNEL_CODE:higher_half_start
+
+fake_gdt:
+    DQ 0x0000000000000000
+    DQ 0x00CF9A000000FFFF
+    DQ 0x00CF92000000FFFF
+
+fake_gdt_ptr:
+    DW $ - fake_gdt - 1
+    DD fake_gdt
+
+ALIGN 0x1000
+kernel_page_directory:
+    TIMES 0x1000 DB 0
+
+ALIGN 0x1000
+kernel_page_table:
+    TIMES 0x1000 DB 0
+
+SECTION .text
+
+GLOBAL higher_half_start
 EXTERN kmain
 
-start:
+higher_half_start:
     MOV ESP, stack
     ; XXX I should probably check that EAX == 0x2BADB002 here
     PUSH EBX

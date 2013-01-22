@@ -82,9 +82,18 @@ panic(const char *fmt, ...)
     asm("HLT");
 }
 
+static void *
+logical_to_physical(void *addr)
+{
+    return (void *) (((uint32_t) addr) - 0xC0000000);
+}
+
 void
 kmain(struct multiboot_info *mboot)
 {
+    /* XXX I should probably copy *mboot somewhere safe... */
+    (void) mboot;
+
     interrupts_disable();
     fpu_init();
     screen_clear();
@@ -92,9 +101,11 @@ kmain(struct multiboot_info *mboot)
     interrupts_init();
     protected_mode_start();
     serial_init();
-    memory_detect(end, mboot);
-    memory_init_paging((void *) MEMORY_PAGE_SIZE, end);
+    //memory_detect(logical_to_physical(end), mboot);
+    //memory_init_paging((void *) MEMORY_PAGE_SIZE, end);
+    // XXX the memory between pre_higher_half and logical_to_physical(code)
+    //     is up for grabs
     /* XXX turn on interrupts? */
 
-    console_write_string("Hello from rOSe (in protected mode!)\n");
+    console_write_string("Hello from rOSe (in the higher half of memory!)\n");
 }
