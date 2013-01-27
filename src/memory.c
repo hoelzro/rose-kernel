@@ -47,6 +47,9 @@
 #define PAGE_SIZE_4KB 0
 #define PAGE_SIZE_4MB 1
 
+#define NUM_PAGE_DIRECTORY_ENTRIES (MEMORY_PAGE_SIZE / sizeof(struct page_directory_entry))
+#define NUM_PAGE_TABLE_ENTRIES     (MEMORY_PAGE_SIZE / sizeof(struct page_table_entry))
+
 struct gdt_entry {
     uint16_t limit_lower;
     uint16_t address_lower;
@@ -84,7 +87,7 @@ struct page_table_entry {
 } __attribute__((packed));
 
 struct page_table {
-    struct page_table_entry entries[MEMORY_PAGE_SIZE / sizeof(struct page_table_entry)];
+    struct page_table_entry entries[NUM_PAGE_TABLE_ENTRIES];
 } __attribute__((packed));
 
 struct page_directory_entry {
@@ -101,7 +104,7 @@ struct page_directory_entry {
 } __attribute__((packed));
 
 struct page_directory {
-    struct page_directory_entry entries[MEMORY_PAGE_SIZE / sizeof(struct page_directory_entry)];
+    struct page_directory_entry entries[NUM_PAGE_DIRECTORY_ENTRIES];
 } __attribute__((packed));
 
 struct gdt_entry gdt[5] __attribute__((aligned (8)));
