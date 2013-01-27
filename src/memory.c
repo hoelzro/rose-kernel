@@ -483,6 +483,10 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
             logical_pages = logical_pages1;
         }
     }
+    _map_physical_address(0x0, logical_pages1);
+    _flush_tlb(logical_pages1);
+    _map_physical_address(0x0, logical_pages2);
+    _flush_tlb(logical_pages2);
 }
 
 void *
