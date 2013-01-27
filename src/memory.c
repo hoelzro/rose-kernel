@@ -283,6 +283,106 @@ remove_identity_map(void *addr)
      *     it to the memory pool */
 }
 
+static void *
+_physical_to_logical(void *addr)
+{
+    /* XXX naïve assumption */
+    return ((char *) addr) + 0xC0000000;
+}
+
+static struct page_table *
+_get_page_table(struct page_directory *pd, void *addr)
+{
+    uint32_t upper = (uint32_t) addr;
+    upper >>= 22;
+    return (struct page_table *) (pd->entries[upper].page_table << 12);
+}
+
+static void
+_set_page(struct page_table *table, void *logical, void *physical)
+{
+    uint32_t middle   = (uint32_t) logical;
+    middle          >>= 12;
+    middle           &= 0x3FF;
+
+    /* XXX probably should allow more control over is_rw and such */
+    struct page_table_entry *entry = table->entries + middle;
+    entry->present = 1;
+    entry->is_rw   = 1;
+    entry->page    = ((uint32_t) physical) >> 12;
+}
+
+static void
+_find_two_free_logical_addresses(void **addr1, void **addr2)
+{
+    struct page_directory *cr3;
+    struct page_table *kernel_land;
+    unsigned int i;
+
+    *addr1 = NULL;
+    *addr2 = NULL;
+
+    /* retrieve the physical address of the
+     * page directory */
+    asm("MOV %0, CR3;"
+       :"=r"(cr3)
+       );
+
+    /* get its logical address */
+    cr3 = _physical_to_logical(cr3);
+
+    /* XXX magic number */
+    ROSE_ASSERT(cr3->entries[768].present);
+
+    /* get the page table corresponding to the kernel */
+    kernel_land = _get_page_table(cr3, (void *) 0xC0000000);
+    kernel_land = _physical_to_logical(kernel_land);
+
+    /* iterate over the entries in the kernel's page table to
+     * find a non-present (ie. free) one */
+    for(i = 0; i < NUM_PAGE_TABLE_ENTRIES; i++) {
+        if(! kernel_land->entries[i].present) {
+            if(! *addr1) {
+                *addr1 = (void *) (0xC0000000 | (i << 12));
+            } else {
+                *addr2 = (void *) (0xC0000000 | (i << 12));
+                return;
+            }
+        }
+    }
+    ROSE_ASSERT(0);
+}
+
+static void
+_map_physical_address(void *physical, void *logical)
+{
+    struct page_directory *cr3;
+    struct page_table *table;
+
+    /* retrieve the physical address of the
+     * page directory */
+    asm("MOV %0, CR3;"
+       :"=r"(cr3)
+       );
+
+    cr3 = _physical_to_logical(cr3);
+    /* XXX we are just assuming that the page table is present!
+     *     we are also potentially clobbering the page table entry
+     *     already present!
+     */
+    table = _physical_to_logical(_get_page_table(cr3, logical));
+    _set_page(table, logical, physical);
+}
+
+static void
+_flush_tlb(void *addr)
+{
+    asm("INVLPG [%0]"
+       :
+       :"r"(addr)
+       );
+}
+
 void
 memory_init_paging(void *kernel_start, void *kernel_end)
 {
@@ -332,6 +432,11 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
     struct multiboot_memory *chunk = mboot->mmap_addr;
     struct multiboot_memory *end   = MBOOT_MMAP_END(mboot);
     struct free_pages **previous   = &free_list;
+    struct free_pages *logical_pages1, *logical_pages2, *logical_pages;
+
+    _find_two_free_logical_addresses((void **) &logical_pages1, (void **) &logical_pages2);
+
+    logical_pages = logical_pages1;
 
     if(! (mboot->flags & MBOOT_MEMORY_MAP)) {
         /* XXX uh-oh! */
@@ -364,11 +469,19 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
         }
 
         pages = (struct free_pages *) start_address;
+        _map_physical_address(pages, logical_pages);
+        _flush_tlb(logical_pages);
 
-        *previous        = pages;
-        pages->num_pages = (end_address - start_address) / MEMORY_PAGE_SIZE;
-        pages->next      = NULL;
-        previous         = &(pages->next);
+        *previous                = pages;
+        logical_pages->num_pages = (end_address - start_address) / MEMORY_PAGE_SIZE;
+        logical_pages->next      = NULL;
+        previous                 = &(logical_pages->next);
+
+        if(logical_pages == logical_pages1) {
+            logical_pages = logical_pages2;
+        } else {
+            logical_pages = logical_pages1;
+        }
     }
 }
 
