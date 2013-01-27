@@ -92,7 +92,6 @@ void
 kmain(struct multiboot_info *mboot)
 {
     /* XXX I should probably copy *mboot somewhere safe... */
-    (void) mboot;
 
     interrupts_disable();
     fpu_init();
@@ -101,7 +100,8 @@ kmain(struct multiboot_info *mboot)
     interrupts_init();
     protected_mode_start();
     serial_init();
-    //memory_detect(logical_to_physical(end), mboot);
+
+    memory_detect(logical_to_physical(end), mboot);
     //memory_init_paging((void *) MEMORY_PAGE_SIZE, end);
     // XXX the memory between pre_higher_half and logical_to_physical(code)
     //     is up for grabs
