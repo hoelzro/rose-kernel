@@ -353,7 +353,7 @@ _find_two_free_logical_addresses(void **addr1, void **addr2)
     ROSE_ASSERT(0);
 }
 
-static void
+static void *
 _map_physical_address(void *physical, void *logical)
 {
     struct page_directory *cr3;
@@ -372,6 +372,8 @@ _map_physical_address(void *physical, void *logical)
      */
     table = _physical_to_logical(_get_page_table(cr3, logical));
     _set_page(table, logical, physical);
+
+    return logical;
 }
 
 static void
