@@ -115,8 +115,8 @@ static struct page_table *dummy_page_table;
 
 /* These are two logical addresses that we keep free for pages that we don't
  * have a permanent mapping for */
-static void *free_logical_address1;
-static void *free_logical_address2;
+static void *free_logical_address1 = 0;
+static void *free_logical_address2 = 0;
 
 #ifdef ROSE_TESTING
 extern void _gdt_set(struct gdt_pointer *gdt);
@@ -318,15 +318,12 @@ _set_page(struct page_table *table, void *logical, void *physical)
     entry->page    = ((uint32_t) physical) >> 12;
 }
 
-static void
-_find_two_free_logical_addresses(void **addr1, void **addr2)
+static void *
+_find_free_logical_address(void)
 {
     struct page_directory *cr3;
     struct page_table *kernel_land;
     unsigned int i;
-
-    *addr1 = NULL;
-    *addr2 = NULL;
 
     /* retrieve the physical address of the
      * page directory */
@@ -348,15 +345,15 @@ _find_two_free_logical_addresses(void **addr1, void **addr2)
      * find a non-present (ie. free) one */
     for(i = 0; i < NUM_PAGE_TABLE_ENTRIES; i++) {
         if(! kernel_land->entries[i].present) {
-            if(! *addr1) {
-                *addr1 = (void *) (0xC0000000 | (i << 12));
-            } else {
-                *addr2 = (void *) (0xC0000000 | (i << 12));
-                return;
+            void *addr = (void *) (0xC0000000 | (i << 12));
+            if(addr != free_logical_address1 && addr != free_logical_address2) {
+                return addr;
             }
         }
     }
     ROSE_ASSERT(0);
+
+    return NULL;
 }
 
 static void *
@@ -442,7 +439,8 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
     struct free_pages **previous   = &free_list;
     struct free_pages *logical_pages;
 
-    _find_two_free_logical_addresses((void **) &free_logical_address1, (void **) &free_logical_address2);
+    free_logical_address1 = _find_free_logical_address();
+    free_logical_address2 = _find_free_logical_address();
 
     logical_pages = free_logical_address1;
 
@@ -616,9 +614,8 @@ void *
 memory_map_physical_address(void *addr)
 {
     void *logical_addr;
-    void *_throwaway;
 
-    _find_two_free_logical_addresses(&logical_addr, &_throwaway);
+    logical_addr = _find_free_logical_address();
 
     _map_physical_address(addr, logical_addr);
 
