@@ -595,3 +595,16 @@ memory_test_paged_address(void *addr)
 
     return pt->entries[table_entry_index].present;
 }
+
+void *
+memory_map_physical_address(void *addr)
+{
+    void *logical_addr;
+    void *_throwaway;
+
+    _find_two_free_logical_addresses(&logical_addr, &_throwaway);
+
+    _map_physical_address(addr, logical_addr);
+
+    return logical_addr;
+}
