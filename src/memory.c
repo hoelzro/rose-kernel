@@ -219,9 +219,10 @@ memory_init_gdt(void)
 
 struct free_pages {
     int num_pages;
-    struct free_pages *next;
+    struct free_pages *next; /* PHYSICAL address */
 };
 
+/* The PHYSICAL address of the beginning of the free list */
 struct free_pages *free_list = NULL;
 
 static void
