@@ -113,6 +113,11 @@ struct gdt_pointer gdt_ptr;
 struct page_directory kernel_pages __attribute__((aligned (MEMORY_PAGE_SIZE)));
 static struct page_table *dummy_page_table;
 
+/* These are two logical addresses that we keep free for pages that we don't
+ * have a permanent mapping for */
+static void *free_logical_address1;
+static void *free_logical_address2;
+
 #ifdef ROSE_TESTING
 extern void _gdt_set(struct gdt_pointer *gdt);
 #else
@@ -435,11 +440,11 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
     struct multiboot_memory *chunk = mboot->mmap_addr;
     struct multiboot_memory *end   = MBOOT_MMAP_END(mboot);
     struct free_pages **previous   = &free_list;
-    struct free_pages *logical_pages1, *logical_pages2, *logical_pages;
+    struct free_pages *logical_pages;
 
-    _find_two_free_logical_addresses((void **) &logical_pages1, (void **) &logical_pages2);
+    _find_two_free_logical_addresses((void **) &free_logical_address1, (void **) &free_logical_address2);
 
-    logical_pages = logical_pages1;
+    logical_pages = free_logical_address1;
 
     if(! (mboot->flags & MBOOT_MEMORY_MAP)) {
         /* XXX uh-oh! */
@@ -480,16 +485,16 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
         logical_pages->next      = NULL;
         previous                 = &(logical_pages->next);
 
-        if(logical_pages == logical_pages1) {
-            logical_pages = logical_pages2;
+        if(logical_pages == free_logical_address1) {
+            logical_pages = free_logical_address2;
         } else {
-            logical_pages = logical_pages1;
+            logical_pages = free_logical_address1;
         }
     }
-    _map_physical_address(0x0, logical_pages1);
-    _flush_tlb(logical_pages1);
-    _map_physical_address(0x0, logical_pages2);
-    _flush_tlb(logical_pages2);
+    _map_physical_address(0x0, free_logical_address1);
+    _flush_tlb(free_logical_address1);
+    _map_physical_address(0x0, free_logical_address2);
+    _flush_tlb(free_logical_address2);
 }
 
 void *
