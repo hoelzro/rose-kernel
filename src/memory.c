@@ -500,27 +500,35 @@ memory_detect(void *kernel_end, struct multiboot_info *mboot)
 void *
 memory_allocate_page(void)
 {
-    struct free_pages *pages = free_list;
-    struct free_pages *next;
+    void *pages;
+    void *next;
+    struct free_pages *logical_pages;
 
-    if(! pages) {
+    if(! free_list) {
         /* Freak out! (at least until swapping is implemented) */
         panic("Out of memory");
     }
 
-    if(pages->num_pages == 1) {
-        next = pages->next;
-    } else {
-        next = (struct free_pages *) (((char *) pages) + MEMORY_PAGE_SIZE);
-        identity_map(next); /* XXX is this ok? */
-        memcpy(next, pages, sizeof(struct free_pages));
-        next->num_pages--;
-    }
-    /* We don't remove the identity mapping for the page we're returning, because
-     * we assume that the kernel is going to use it.  This may change in the future!
-     */
+    pages         = free_list;
+    logical_pages = _map_physical_address(pages, free_logical_address1);
 
+    if(logical_pages->num_pages == 1) {
+        next = logical_pages->next;
+    } else {
+        struct free_pages *logical_next;
+
+        next         = (((char *) pages) + MEMORY_PAGE_SIZE);
+        logical_next = _map_physical_address(next, free_logical_address2);
+        memcpy(logical_next, logical_pages, sizeof(struct free_pages));
+        logical_next->num_pages--;
+
+        _map_physical_address(0x0, logical_next);
+        _flush_tlb(logical_next);
+    }
     free_list = next;
+
+    _map_physical_address(0x0, logical_pages);
+    _flush_tlb(logical_pages);
 
     return (void *) pages;
 }
