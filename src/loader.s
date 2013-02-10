@@ -73,21 +73,17 @@ map_kernel_loop:
 
     MOV ECX, kernel_page_directory
     MOV EDX, kernel_page_table
-    AND EDX, 0xFFFFF000
     OR  EDX, 0x003
     MOV [ECX + (768 * 4)], EDX
 
     MOV EDX, kernel_page_table
-    AND EDX, 0xFFFFF000
     OR  EDX, 0x003
     MOV [ECX], EDX
 
     MOV EDX, kernel_page_directory
-    AND EDX, 0xFFFFF000
     OR  EDX, 0x003
     MOV [ECX + (1023 * 4)], EDX
 
-    AND ECX, 0xFFFFF000
     MOV CR3, ECX
 
     MOV ECX, CR0
