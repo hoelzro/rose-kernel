@@ -4,6 +4,12 @@
 #include <rose/memory.h>
 
 void
+panic(const char *message)
+{
+    assert(0);
+}
+
+void
 idt_set(void *p)
 {
     (void)p;

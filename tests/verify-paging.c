@@ -13,6 +13,12 @@ static char kmem[20 * PAGE_SIZE] __attribute__((aligned (0x100000)));
 static void *start = kmem;
 static void *end   = kmem + 0x8800;
 
+void
+panic(const char *message)
+{
+    assert(0);
+}
+
 static void
 check_entry(uint32_t **directory, void *p)
 {
