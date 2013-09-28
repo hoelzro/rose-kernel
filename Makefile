@@ -1,7 +1,7 @@
 QEMU=qemu-system-i386
 QEMU_OPTS=-serial stdio
 
-.PHONY: tools
+.PHONY: test tools
 
 all: tools
 	make -C src kernel.bin
