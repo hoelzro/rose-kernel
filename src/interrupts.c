@@ -92,6 +92,7 @@ struct idt_pointer {
     union idt_entry *first;
 } __attribute__((packed));
 
+// XXX duplicate?
 struct registers {
     uint32_t ds;
     uint32_t edi;

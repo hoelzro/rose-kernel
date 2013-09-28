@@ -134,6 +134,7 @@ console_set_cursor(int x, int y)
     stream.row    = y;
 }
 
+// XXX duplicate?
 struct registers {
     uint32_t edi;
     uint32_t esi;

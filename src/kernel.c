@@ -77,11 +77,13 @@ panic(const char *fmt, ...)
         console_printf("Kernel panic!\n");
     }
 
+    // XXX these aren't going to be accurate, though...
     console_dump_registers();
     interrupts_disable();
     asm("HLT");
 }
 
+// XXX ???
 static void *
 logical_to_physical(void *addr)
 {

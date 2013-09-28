@@ -1,3 +1,5 @@
+/* XXX license? */
+
 ENTRY (start)
 SECTIONS
 {

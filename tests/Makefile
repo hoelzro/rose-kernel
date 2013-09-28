@@ -3,6 +3,7 @@ CFLAGS+=-m32 -masm=intel -Wall -Wextra -I../include -g -DROSE_TESTING=1
 TESTS=$(shell ls verify-*.c | sed -e 's/.c$$//')
 
 run: $(TESTS)
+	# XXX verify that tests are properly built!
 	@for test in $^; do \
 	    echo ./$$test ; \
 	    ./$$test ; \

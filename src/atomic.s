@@ -1,3 +1,4 @@
+; XXX license info
 SECTION .text
 
 GLOBAL atomic_compare_and_set8
@@ -13,6 +14,7 @@ atomic_compare_and_set8:
     MOV EAX, [EBP + 12]
     MOV EDX, [EBP + 16]
 
+    ; XXX umm...LOCK?
     CMPXCHG [ECX], DL
 
     SETE AL
