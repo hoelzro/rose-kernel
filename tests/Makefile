@@ -1,3 +1,4 @@
+ASFLAGS=-f elf
 CFLAGS+=-m32 -masm=intel -Wall -Wextra -I../include -g -DROSE_TESTING=1
 
 TESTS=$(shell ls verify-*.c | sed -e 's/.c$$//')
@@ -8,6 +9,9 @@ run: $(TESTS)
 	    echo ./$$test ; \
 	    ./$$test ; \
 	done
+
+%.o: %.s
+	nasm $(ASFLAGS) -o $@ $<
 
 verify-gdt: verify-gdt.c ../src/memory.o
 	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
