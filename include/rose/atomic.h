@@ -23,4 +23,9 @@ atomic_compare_and_set_pointer(void **location, void *old_value, void *new_value
 }
 #endif
 
+/* XXX signed versions? */
+uint8_t atomic_incr8(uint8_t *location);
+uint16_t atomic_incr16(uint16_t *location);
+uint32_t atomic_incr32(uint32_t *location);
+
 #endif
