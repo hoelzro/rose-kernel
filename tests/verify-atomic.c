@@ -86,6 +86,67 @@ check_many_threads_cas(void)
     assert(value == NUM_THREADS * 1000000);
 }
 
+static void
+check_8bit_incr(void)
+{
+    uint8_t value = 17;
+
+    assert(atomic_incr8(&value) == 18);
+    assert(atomic_incr8(&value) == 19);
+    /* XXX check at roll over point(s) */
+}
+
+static void
+check_16bit_incr(void)
+{
+    uint16_t value = 17;
+
+    assert(atomic_incr16(&value) == 18);
+    assert(atomic_incr16(&value) == 19);
+    /* XXX check at roll over point(s) */
+}
+
+static void
+check_32bit_incr(void)
+{
+    uint32_t value = 17;
+
+    assert(atomic_incr32(&value) == 18);
+    assert(atomic_incr32(&value) == 19);
+    /* XXX check at roll over point(s) */
+}
+
+static void *
+many_thread_function_incr(void *udata)
+{
+    uint32_t *valuep = udata;
+    int i;
+
+    for(i = 0; i < 1000000; i++) {
+        atomic_incr32(valuep);
+    }
+    return NULL;
+}
+
+static void
+check_many_threads_incr(void)
+{
+    pthread_t threads[NUM_THREADS];
+    int i;
+    uint32_t value = 0;
+
+    for(i = 0; i < NUM_THREADS; i++) {
+        pthread_create(&threads[i], NULL, many_thread_function_incr, &value);
+    }
+
+    for(i = 0; i < NUM_THREADS; i++) {
+        void *result;
+        pthread_join(threads[i], &result);
+    }
+
+    assert(value == NUM_THREADS * 1000000);
+}
+
 int
 main(void)
 {
@@ -94,5 +155,10 @@ main(void)
     check_32bit_cas();
     check_64bit_cas();
     check_many_threads_cas();
+
+    check_8bit_incr();
+    check_16bit_incr();
+    check_32bit_incr();
+    check_many_threads_incr();
     return 0;
 }
