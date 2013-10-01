@@ -14,8 +14,7 @@ atomic_compare_and_set8:
     MOV EAX, [EBP + 12]
     MOV EDX, [EBP + 16]
 
-    ; XXX umm...LOCK?
-    CMPXCHG [ECX], DL
+    LOCK CMPXCHG [ECX], DL
 
     SETE AL
     AND  EAX, 0xFF
@@ -31,7 +30,7 @@ atomic_compare_and_set16:
     MOV EAX, [EBP + 12]
     MOV EDX, [EBP + 16]
 
-    CMPXCHG [ECX], DX
+    LOCK CMPXCHG [ECX], DX
 
     SETE AL
     AND  EAX, 0xFF
@@ -47,7 +46,7 @@ atomic_compare_and_set32:
     MOV EAX, [EBP + 12]
     MOV EDX, [EBP + 16]
 
-    CMPXCHG [ECX], EDX
+    LOCK CMPXCHG [ECX], EDX
 
     SETE AL
     AND  EAX, 0xFF
@@ -65,7 +64,7 @@ atomic_compare_and_set64:
     MOV EBX, [EBP + 20]
     MOV ECX, [EBP + 24]
 
-    CMPXCHG8B [ESI]
+    LOCK CMPXCHG8B [ESI]
 
     SETE AL
     AND  EAX, 0xFF
