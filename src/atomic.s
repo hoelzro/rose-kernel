@@ -62,6 +62,7 @@ atomic_compare_and_set64:
     PUSH EBP
     MOV  EBP, ESP
 
+    ; XXX um....
     MOV ESI, [EBP + 8]
     MOV EAX, [EBP + 12]
     MOV EDX, [EBP + 16]
