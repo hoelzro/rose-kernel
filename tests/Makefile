@@ -32,7 +32,7 @@ verify-stream: verify-stream.c ../src/stream.o ../src/stdarg.o
 	gcc $(CFLAGS) -o $@ $^
 
 verify-atomic: verify-atomic.c ../src/atomic.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ $^ -lpthread
 
 clean:
 	rm -f *.o verify-gdt verify-idt verify-stdarg verify-stdlib-string verify-paging verify-stream verify-atomic
