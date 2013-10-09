@@ -26,7 +26,15 @@
 /* XXX include file/line in message? */
 void panic(const char *fmt, ...);
 
-/* XXX only define this macro if we're compiling in "safe" mode */
+#define ROSE_DEBUG 1
+
+#if ROSE_DEBUG
+#  define ROSE_DEBUG_DO(code)\
+    code
+#else
+#  define ROSE_DEBUG_DO(code)
+#endif
+
 #define ROSE_ASSERT(cond)\
     if(!(cond)) {\
         panic("condition '%s' failed", #cond);\
