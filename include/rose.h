@@ -36,8 +36,8 @@ void panic(const char *fmt, ...);
 #endif
 
 #define ROSE_ASSERT(cond)\
-    if(!(cond)) {\
+    ROSE_DEBUG_DO(if(!(cond)) {\
         panic("condition '%s' failed", #cond);\
-    }
+    })
 
 #endif
