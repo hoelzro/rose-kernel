@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <rose.h>
 #include <rose/memory.h>
 #include <rose/registers.h>
 #include <rose/scheduler.h>
@@ -67,6 +68,8 @@ _cleanup_task(void)
 static void
 _push_to_task_stack(struct task *task, uint32_t value)
 {
+    ROSE_ASSERT(task != _get_current_task());
+
     task->registers.esp -= 4;
     *((uint32_t *) task->registers.esp) = value;
 }
