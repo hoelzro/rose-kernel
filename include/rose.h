@@ -40,4 +40,6 @@ void panic(const char *fmt, ...);
         panic("condition '%s' failed", #cond);\
     })
 
+#define NON_REENTRANT
+
 #endif
