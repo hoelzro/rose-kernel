@@ -51,7 +51,7 @@
 #define NUM_PAGE_DIRECTORY_ENTRIES (MEMORY_PAGE_SIZE / sizeof(struct page_directory_entry))
 #define NUM_PAGE_TABLE_ENTRIES     (MEMORY_PAGE_SIZE / sizeof(struct page_table_entry))
 
-/* Chapters 3 and 4of the Intel 64 and IA-32 Architectures Software Developer's
+/* Chapters 3 and 4 of the Intel 64 and IA-32 Architectures Software Developer's
  * Manual cover this stuff */
 
 /*
