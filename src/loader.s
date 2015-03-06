@@ -64,6 +64,16 @@ start:
 
     MOV ECX, kernel_page_table
     MOV EDX, 0x00000003 ; XXX magic number!
+
+    ; this creates a page table where the entries all point
+    ; at the range between 0 and the page containing the
+    ; end of the kernel.  XXX If the end of the kernel is
+    ; not in the first 4MB, this will run over the size of
+    ; the page table and start messing things up.
+    ;
+    ; XXX this seems to map address 0, making detecting a
+    ;     null pointer access impossible... changing EDX above
+    ;     to 0x1003 doesn't help
 map_kernel_loop:
     MOV [ECX], EDX
     ADD ECX, 4
@@ -71,15 +81,23 @@ map_kernel_loop:
     CMP EDX, (end - 0xC0000000) ; XXX magic number
     JB map_kernel_loop
 
+    ; this maps the first 4MB after 0xC0000000 (the highest
+    ; gigabyte of memory) to the addresses in the page table
+    ; we just initialized
     MOV ECX, kernel_page_directory
     MOV EDX, kernel_page_table
     OR  EDX, 0x003
     MOV [ECX + (768 * 4)], EDX
 
+    ; this uses the same page table to identity map the kernel
     MOV EDX, kernel_page_table
     OR  EDX, 0x003
     MOV [ECX], EDX
 
+    ; this sets up what is called a fractal mapping; what happens
+    ; is the page directory structure sets itself up as the
+    ; final page table in itself, so addresses after 0xFFFFF000
+    ; map our page tables
     MOV EDX, kernel_page_directory
     OR  EDX, 0x003
     MOV [ECX + (1023 * 4)], EDX
