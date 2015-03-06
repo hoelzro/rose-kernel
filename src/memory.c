@@ -35,6 +35,7 @@
 #define DESC_TYPE_SYSTEM      0
 #define DESC_TYPE_CODEDATA    1
 
+/* XXX should probably be called SEGMENT_TYPE_* */
 #define DESC_TYPE_DATA        0
 #define DESC_TYPE_CODE        (1 << 3)
 #define DESC_TYPE_EXPAND_UP   0
@@ -50,20 +51,33 @@
 #define NUM_PAGE_DIRECTORY_ENTRIES (MEMORY_PAGE_SIZE / sizeof(struct page_directory_entry))
 #define NUM_PAGE_TABLE_ENTRIES     (MEMORY_PAGE_SIZE / sizeof(struct page_table_entry))
 
+/* Chapters 3 and 4of the Intel 64 and IA-32 Architectures Software Developer's
+ * Manual cover this stuff */
+
+/*
+ *                     ----------------                        ----------
+ * logical address --> | segmentation | --> linear address --> | paging | --> physical address
+ *                     ----------------                        ----------
+ *
+ */
+
+/* Documented in section 3.4.5 */
+
+/* XXX should probably be called segment_desc */
 struct gdt_entry {
-    uint16_t limit_lower;
-    uint16_t address_lower;
-    uint8_t  address_middle;
-    uint8_t  type                   : 4;
-    uint8_t  descriptor_type        : 1;
-    uint8_t  dpl                    : 2;
-    uint8_t  segment_present        : 1;
-    uint8_t  limit_high             : 4;
-    uint8_t  avl                    : 1;
-    uint8_t  is_64                  : 1;
-    uint8_t  default_operation_size : 1;
-    uint8_t  granularity            : 1;
-    uint8_t  address_high;
+    uint16_t limit_lower;                /* bits 0-15 of segment size */
+    uint16_t address_lower;              /* bits 0-15 of segment location in linear RAM */
+    uint8_t  address_middle;             /* bits 16-19 of segment location in RAM */
+    uint8_t  type                   : 4; /* segment type (an OR mask of DESC_TYPE_*, sans DESC_TYPE_SYSTEM and DESC_TYPE_CODEDATA) */
+    uint8_t  descriptor_type        : 1; /* descriptor type (DESC_TYPE_SYSTEM or DESC_TYPE_CODEDATA) */
+    uint8_t  dpl                    : 2; /* descriptor privilege level (0 most privileged) */
+    uint8_t  segment_present        : 1; /* indicates whether or not a segment is present in memory */
+    uint8_t  limit_high             : 4; /* bits 16-19 of segment size */
+    uint8_t  avl                    : 1; /* available for use by OS */
+    uint8_t  is_64                  : 1; /* whether or not this segment contains 64-bit code */
+    uint8_t  default_operation_size : 1; /* multi-purpose flag; but determines whether 16- or 32-bit addresses should be used */
+    uint8_t  granularity            : 1; /* determines whether the segment limit should be interpreted in terms of bytes (GRANULARITY_BYTE) or kilobytes (GRANULARITY_KBYTE) */
+    uint8_t  address_high;               /* bits 20-31 of segment location in RAM */
 } __attribute__((packed));
 
 struct gdt_pointer {
@@ -71,18 +85,20 @@ struct gdt_pointer {
     struct gdt_entry *first;
 } __attribute__((packed));
 
+/* Documented in section 4.3 */
+
 struct page_table_entry {
-    uint8_t  present                  : 1;
-    uint8_t  is_rw                    : 1;
-    uint8_t  is_user_permitted        : 1;
-    uint8_t  page_level_write_through : 1;
-    uint8_t  page_level_cache_disable : 1;
-    uint8_t  accessed                 : 1;
-    uint8_t  dirty                    : 1;
-    uint8_t  pat                      : 1;
-    uint8_t  is_global                : 1;
-    uint8_t  reserved0                : 3;
-    uint32_t page                     : 20; /* we need to right-pad this by 12 0 bits */
+    uint8_t  present                  : 1; /* whether or the page is present in memory */
+    uint8_t  is_rw                    : 1; /* whether or not the page is writable */
+    uint8_t  is_user_permitted        : 1; /* whether or not page is accessible from userspace */
+    uint8_t  page_level_write_through : 1; /* See section 4.9 */
+    uint8_t  page_level_cache_disable : 1; /* See section 4.9 */
+    uint8_t  accessed                 : 1; /* whether or not this page has been used for linear address translation */
+    uint8_t  dirty                    : 1; /* whether or not this page has changed */
+    uint8_t  pat                      : 1; /* See section 4.9.2 */
+    uint8_t  is_global                : 1; /* whether or not translation is global */
+    uint8_t  reserved0                : 3; /* don't touch */
+    uint32_t page                     : 20; /* physical address of the page; we need to right-pad this by 12 0 bits */
 
 } __attribute__((packed));
 
@@ -91,16 +107,16 @@ struct page_table {
 } __attribute__((packed));
 
 struct page_directory_entry {
-    uint8_t  present                  : 1;
-    uint8_t  is_rw                    : 1;
-    uint8_t  is_user_permitted        : 1;
-    uint8_t  page_level_write_through : 1;
-    uint8_t  page_level_cache_disable : 1;
-    uint8_t  accessed                 : 1;
-    uint8_t  reserved0                : 1;
-    uint8_t  page_size                : 1;
-    uint8_t  reserved1                : 4;
-    uint32_t page_table               : 20; /* we need to right-pad this by 12 0 bits */
+    uint8_t  present                  : 1; /* whether or the page is present in memory */
+    uint8_t  is_rw                    : 1; /* whether or not the page is writable */
+    uint8_t  is_user_permitted        : 1; /* whether or not page is accessible from userspace */
+    uint8_t  page_level_write_through : 1; /* See section 4.9 */
+    uint8_t  page_level_cache_disable : 1; /* See section 4.9 */
+    uint8_t  accessed                 : 1; /* whether or not this page has been used for linear address translation */
+    uint8_t  reserved0                : 1; /* don't touch */
+    uint8_t  page_size                : 1; /* determines whether this page is 4KB (PAGE_SIZE_4KB) or 4MB (PAGE_SIZE_4MB) */
+    uint8_t  reserved1                : 4; /* don't touch */
+    uint32_t page_table               : 20; /* physical address of the page; we need to right-pad this by 12 0 bits */
 } __attribute__((packed));
 
 struct page_directory {
@@ -111,10 +127,11 @@ struct gdt_entry gdt[5] __attribute__((aligned (8)));
 struct gdt_pointer gdt_ptr;
 
 struct page_directory kernel_pages __attribute__((aligned (MEMORY_PAGE_SIZE)));
-static struct page_table *dummy_page_table;
+static struct page_table *dummy_page_table; /* XXX what's this for? */
 
 /* These are two logical addresses that we keep free for pages that we don't
  * have a permanent mapping for */
+/* XXX I think this is flawed */
 static void *free_logical_address1 = 0;
 static void *free_logical_address2 = 0;
 
@@ -318,6 +335,8 @@ _set_page(struct page_table *table, void *logical, void *physical)
     entry->page    = ((uint32_t) physical) >> 12;
 }
 
+/* This only searches through a single page table, which assumes that we
+ * only need 1024 free addresses? */
 static void *
 _find_free_logical_address(void)
 {
