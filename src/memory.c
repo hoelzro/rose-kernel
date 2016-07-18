@@ -135,14 +135,11 @@ static struct page_table *dummy_page_table; /* XXX what's this for? */
 static void *free_logical_address1 = 0;
 static void *free_logical_address2 = 0;
 
-#ifdef ROSE_TESTING
-extern void _gdt_set(struct gdt_pointer *gdt);
-#else
 /* NOTE: If this is ever used outside of the context of
  *       setting up for protected mode, we need to refresh
  *       the segment selectors.
  */
-static void
+void
 _gdt_set(struct gdt_pointer *gdt)
 {
     asm("MOV EAX, %0;"
@@ -152,7 +149,6 @@ _gdt_set(struct gdt_pointer *gdt)
        : "eax"
        );
 }
-#endif
 
 static void
 _gdt_entry_set_base(struct gdt_entry *entry, uint32_t base)

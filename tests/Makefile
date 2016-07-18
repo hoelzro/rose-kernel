@@ -14,10 +14,10 @@ run: $(TESTS)
 	nasm $(ASFLAGS) -o $@ $<
 
 verify-gdt: verify-gdt.c ../src/memory.o
-	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
+	gcc $(CFLAGS) -o $@ $^ -Wl,--allow-multiple-definition -Wl,verify-idt.ld
 
 verify-idt: verify-idt.c ../src/interrupts.o
-	gcc $(CFLAGS) -o $@ $^ -Wl,verify-idt.ld
+	gcc $(CFLAGS) -o $@ $^ -Wl,--allow-multiple-definition -Wl,verify-idt.ld
 
 verify-stdarg: verify-stdarg.c ../src/stdarg.o
 	gcc $(CFLAGS) -o $@ $^
@@ -26,7 +26,7 @@ verify-stdlib-string: verify-stdlib-string.c ../src/string.o
 	gcc $(CFLAGS) -o $@ $^
 
 verify-paging: verify-paging.c ../src/memory.o
-	gcc $(CFLAGS) -o $@ $^
+	gcc $(CFLAGS) -o $@ $^ -Wl,--allow-multiple-definition
 
 verify-stream: verify-stream.c ../src/stream.o ../src/stdarg.o
 	gcc $(CFLAGS) -o $@ $^

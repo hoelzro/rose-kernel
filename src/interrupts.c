@@ -167,10 +167,7 @@ _general_isr(struct registers regs)
     panic("Unexpected interrupt (0x%x)", regs.interrupt_no);
 }
 
-#ifdef ROSE_TESTING
-extern void _idt_set(struct idt_pointer *ptr);
-#else
-static void
+void
 _idt_set(struct idt_pointer *ptr)
 {
     asm("MOV EAX, %0;"
@@ -180,7 +177,6 @@ _idt_set(struct idt_pointer *ptr)
        : "eax"
        );
 }
-#endif
 
 void
 interrupts_init(void)
