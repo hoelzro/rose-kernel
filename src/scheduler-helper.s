@@ -57,7 +57,7 @@ _resume_task:
     ;MOV SS,  [EAX + STRUCT_TASK_STACK_OFFSET] ; do this after we integrate this code into the kernel
     MOV EAX, [EAX + STRUCT_TASK_REGISTERS_OFFSET + STRUCT_REGISTERS_EAX_OFFSET] ; must occur last
 
-    ADD ESP, 4
+    ADD ESP, 4 ; we pushed EAX at the top of this function when this task called _resume_task; this clears it
 
     RET ; pops EIP and resumes execution of task
 
@@ -97,6 +97,9 @@ _get_current_task:
     RET
 
 scheduler_yield:
+    ; We push these two to preserve their values, which we retrieve below.
+    ; This is so that when we call _resume_task, the original values of
+    ; EAX and EBX are preserved in the registers struct of the task
     PUSH EAX
     PUSH EBX
 
@@ -112,12 +115,13 @@ scheduler_yield:
     ADD EBX, STRUCT_SCHEDULER_KERNEL_TASK_OFFSET
 %endif
 
+    ; pushing parameters for _resume_task
     PUSH EBX
     PUSH EAX
 
     MOV EBX, [ESP + 8]
     MOV EAX, [ESP + 12]
     CALL _resume_task
-    ADD ESP, 16
+    ADD ESP, 16 ; clean up parameters and our temporary saves of EAX and EBX
 
     RET
